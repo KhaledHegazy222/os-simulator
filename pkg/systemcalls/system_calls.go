@@ -26,7 +26,8 @@ func (o *OS) ReadFile(path string) ([]string, error) {
 
 // WriteToFile write data to existing file on disk and create it if not existed.
 func (o *OS) WriteToFile(path string, data string) error {
-	return os.WriteFile(path, []byte(data), 0666)
+	const readWriteFilePermission= 0666
+	return os.WriteFile(path, []byte(data), readWriteFilePermission)
 }
 
 // WriteToFile delete file from file system.
