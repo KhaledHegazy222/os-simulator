@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"os"
 	"strings"
 )
@@ -20,7 +19,7 @@ func NewParser() *Parser {
 func (p *Parser) Parse(file string) ([]Instruction, error) {
 	bytes, err := os.ReadFile(file)
 	if err != nil {
-		fmt.Printf("error: %q", err)
+		return []Instruction{}, err
 	}
 	lines := strings.Split(string(bytes), "\n")
 	instructions := make([]Instruction, 0)
@@ -42,6 +41,5 @@ func (p *Parser) Parse(file string) ([]Instruction, error) {
 		ins := Instruction{Command: command, Args: args}
 		instructions = append(instructions, ins)
 	}
-	fmt.Printf("%q\n", instructions)
 	return instructions, nil
 }
