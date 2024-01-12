@@ -6,118 +6,118 @@ import (
 
 func TestMutex(t *testing.T) {
 
-	t.Run("test_single_process_acquire_lock", func(t *testing.T) {
-		const first_process Process = 1
-		target_resource := "userInput"
+	t.Run("test single process acquire lock", func(t *testing.T) {
+		const firstProcess Process = 1
+		targetResource := "userInput"
 		mutex := NewMutex()
-		success := mutex.SemWait(target_resource, first_process)
+		success := mutex.SemWait(targetResource, firstProcess)
 		if !success {
-			t.Fatalf("Failed to acquire the lock for resource %q to process %q\n", target_resource, first_process)
+			t.Fatalf("Failed to acquire the lock for resource %q to process %q\n", targetResource, firstProcess)
 		}
-		resource, isPresent := mutex.resources[target_resource]
+		resource, isPresent := mutex.resources[targetResource]
 		if !isPresent {
-			t.Fatalf("Expected to get process %q\n", first_process)
+			t.Fatalf("Expected to get process %q\n", firstProcess)
 		}
-		if resource.ownerProcess != first_process {
-			t.Fatalf("Expected process %q, found %q\n", first_process, resource.ownerProcess)
+		if resource.ownerProcess != firstProcess {
+			t.Fatalf("Expected process %q, found %q\n", firstProcess, resource.ownerProcess)
 		}
 	})
-	t.Run("test_multiple_processes_acquire_lock_return_value", func(t *testing.T) {
+	t.Run("test multiple processes acquire lock return value", func(t *testing.T) {
 		mutex := NewMutex()
-		const first_process Process = 1
-		const second_process Process = 2
-		target_resource := "userInput"
-		success := mutex.SemWait(target_resource, first_process)
+		const firstProcess Process = 1
+		const secondProcess Process = 2
+		targetResource := "userInput"
+		success := mutex.SemWait(targetResource, firstProcess)
 		if !success {
-			t.Fatalf("Failed to acquire the lock for resource %q to process %q\n", target_resource, first_process)
+			t.Fatalf("Failed to acquire the lock for resource %q to process %q\n", targetResource, firstProcess)
 		}
-		success = mutex.SemWait(target_resource, second_process)
+		success = mutex.SemWait(targetResource, secondProcess)
 		if success {
-			t.Fatalf("Expected to be blocked when acquire the lock for resource %q to process %q\n", target_resource, second_process)
+			t.Fatalf("Expected to be blocked when acquire the lock for resource %q to process %q\n", targetResource, secondProcess)
 		}
 
 	})
-	t.Run("test_multiple_processes_acquire_lock_blocked_queues", func(t *testing.T) {
+	t.Run("test multiple processes acquire lock blocked queues", func(t *testing.T) {
 		mutex := NewMutex()
-		const first_process Process = 1
-		const second_process Process = 2
-		target_resource := "userInput"
-		mutex.SemWait(target_resource, first_process)
-		mutex.SemWait(target_resource, second_process)
+		const firstProcess Process = 1
+		const secondProcess Process = 2
+		targetResource := "userInput"
+		mutex.SemWait(targetResource, firstProcess)
+		mutex.SemWait(targetResource, secondProcess)
 
-		resource, isPresent := mutex.resources[target_resource]
+		resource, isPresent := mutex.resources[targetResource]
 		if !isPresent {
-			t.Fatalf("Expected to get process %q\n", first_process)
+			t.Fatalf("Expected to get process %q\n", firstProcess)
 		}
 
-		expected_process := first_process
-		actual_process := resource.ownerProcess
-		if resource.ownerProcess != first_process {
-			t.Fatalf("Expected process %q, found %q\n", expected_process, actual_process)
+		expectedProcess := firstProcess
+		actualProcess := resource.ownerProcess
+		if resource.ownerProcess != firstProcess {
+			t.Fatalf("Expected process %q, found %q\n", expectedProcess, actualProcess)
 		}
 
-		expected_length := 1
-		actual_length := len(resource.blocked_processes)
-		if expected_length != actual_length {
-			t.Fatalf("Expected to have %d blocked processes, but found %d\n", expected_length, actual_length)
+		expectedLength := 1
+		actualLength := len(resource.blockedProcesses)
+		if expectedLength != actualLength {
+			t.Fatalf("Expected to have %d blocked processes, but found %d\n", expectedLength, actualLength)
 		}
-		expected_process = second_process
-		actual_process = resource.blocked_processes[0]
-		if expected_process != actual_process {
-			t.Fatalf("Expected process %q, found %q\n", expected_process, actual_process)
+		expectedProcess = secondProcess
+		actualProcess = resource.blockedProcesses[0]
+		if expectedProcess != actualProcess {
+			t.Fatalf("Expected process %q, found %q\n", expectedProcess, actualProcess)
 		}
 	})
-	t.Run("test_single_process_release_lock", func(t *testing.T) {
-		const first_process Process = 1
-		target_resource := "userInput"
+	t.Run("test single process release lock", func(t *testing.T) {
+		const firstProcess Process = 1
+		targetResource := "userInput"
 		mutex := NewMutex()
-		mutex.SemWait(target_resource, first_process)
-		success := mutex.SemSignal(target_resource, first_process)
+		mutex.SemWait(targetResource, firstProcess)
+		success := mutex.SemSignal(targetResource, firstProcess)
 		if !success {
-			t.Fatalf("Failed to release the lock for resource %q to process %d\n", target_resource, first_process)
+			t.Fatalf("Failed to release the lock for resource %q to process %d\n", targetResource, firstProcess)
 		}
 	})
-	t.Run("test_single_process_multiple_release_lock", func(t *testing.T) {
-		const first_process Process = 1
-		target_resource := "userInput"
+	t.Run("test single process multiple release lock", func(t *testing.T) {
+		const firstProcess Process = 1
+		targetResource := "userInput"
 		mutex := NewMutex()
-		mutex.SemWait(target_resource, first_process)
-		mutex.SemSignal(target_resource, first_process)
-		success := mutex.SemSignal(target_resource, first_process)
+		mutex.SemWait(targetResource, firstProcess)
+		mutex.SemSignal(targetResource, firstProcess)
+		success := mutex.SemSignal(targetResource, firstProcess)
 		if success {
-			t.Fatalf("Expected to fail to release the lock for resource %q to process %q\n", target_resource, first_process)
+			t.Fatalf("Expected to fail to release the lock for resource %q to process %q\n", targetResource, firstProcess)
 		}
 	})
 
-	t.Run("test_not_allowed_release_lock", func(t *testing.T) {
-		const first_process Process = 1
-		const second_process Process = 2
-		target_resource := "userInput"
+	t.Run("test not allowed release lock", func(t *testing.T) {
+		const firstProcess Process = 1
+		const secondProcess Process = 2
+		targetResource := "userInput"
 		mutex := NewMutex()
-		mutex.SemWait(target_resource, first_process)
-		success := mutex.SemSignal(target_resource, second_process)
+		mutex.SemWait(targetResource, firstProcess)
+		success := mutex.SemSignal(targetResource, secondProcess)
 
 		if success {
-			t.Fatalf("Expected to fail to release the lock for resource %q to process %q\n", target_resource, second_process)
+			t.Fatalf("Expected to fail to release the lock for resource %q to process %q\n", targetResource, secondProcess)
 		}
 	})
 
-	t.Run("test_consecutive_locks_and_releases", func(t *testing.T) {
+	t.Run("test consecutive locks and releases", func(t *testing.T) {
 		mutex := NewMutex()
-		const first_process Process = 1
-		const second_process Process = 2
-		target_resource := "userInput"
-		mutex.SemWait(target_resource, first_process)
-		mutex.SemSignal(target_resource, first_process)
+		const firstProcess Process = 1
+		const secondProcess Process = 2
+		targetResource := "userInput"
+		mutex.SemWait(targetResource, firstProcess)
+		mutex.SemSignal(targetResource, firstProcess)
 
-		success := mutex.SemWait(target_resource, second_process)
+		success := mutex.SemWait(targetResource, secondProcess)
 		if !success {
-			t.Fatalf("Failed to acquire the lock for resource %q to process %q\n", target_resource, second_process)
+			t.Fatalf("Failed to acquire the lock for resource %q to process %q\n", targetResource, secondProcess)
 		}
 
-		success = mutex.SemSignal(target_resource, second_process)
+		success = mutex.SemSignal(targetResource, secondProcess)
 		if !success {
-			t.Fatalf("Failed to release the lock for resource %q to process %d\n", target_resource, second_process)
+			t.Fatalf("Failed to release the lock for resource %q to process %d\n", targetResource, secondProcess)
 		}
 
 	})
