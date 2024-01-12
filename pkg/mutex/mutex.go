@@ -3,32 +3,47 @@ package mutex
 type Process int
 
 type Resource struct {
-	owner_process     Process
+	ownerProcess      Process
 	blocked_processes []Process
 }
 
-var resources = map[string]Resource{}
+type Mutex struct {
+	resources map[string]Resource
+}
 
-func semWait(target_resource string, process Process) {
+func NewMutex() Mutex {
+	return Mutex{resources: map[string]Resource{}}
+}
+
+func (m *Mutex) SemWait(target_resource string, process Process) bool {
 	// Lock
-	resource, ok := resources[target_resource]
-	if !ok {
+	resource, isPresent := m.resources[target_resource]
+	if !isPresent {
 		// Lock Resource
-		resources[target_resource] = Resource{owner_process: process, blocked_processes: []Process{}}
+		m.resources[target_resource] = Resource{ownerProcess: process, blocked_processes: []Process{}}
+		return true
 	} else {
 		// TODO:
 		// Notify os to add to blocked queue
 
 		resource.blocked_processes = append(resource.blocked_processes, process)
+		m.resources[target_resource] = resource
+		return false
 	}
 }
 
-func semSignal(target_resource string) {
+func (m *Mutex) SemSignal(target_resource string, process Process) bool {
 	// Release
-	rr := resources[target_resource]
-	for process := range rr.blocked_processes {
-		// Update Process State from block to ready
+	resource, isPresent := m.resources[target_resource]
+	if isPresent && resource.ownerProcess == process {
+		for process := range resource.blocked_processes {
+			// Update Process State from block to ready
+		}
+		// Remove Used Resource
+		delete(m.resources, target_resource)
+		return true
+	} else {
+		return false
 	}
-	// Remove Used Resource
-	delete(resources, target_resource)
+
 }
