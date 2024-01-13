@@ -21,11 +21,7 @@ func TestGetProcessSize(t *testing.T) {
 }
 
 func TestAddProcess(t *testing.T) {
-	var ram RAMMemory
-	memoryManager := MemoryManager{
-		ram:             ram,
-		processLocation: make(map[int]int),
-	}
+	memoryManager := NewMemoryManager()
 
 	// add first process from 1 to 13
 	pcb, err := memoryManager.AddProcess(unparsedCode)
