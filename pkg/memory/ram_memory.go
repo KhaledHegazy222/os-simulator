@@ -33,7 +33,7 @@ func (ram *RAMMemory) isFree(from int, to int) bool {
 }
 
 func (ram *RAMMemory) allocateProcess(start int, unparsedCode []string) PCB {
-	end := start + getProcessSize(len(unparsedCode))
+	end := start + getProcessSize(len(unparsedCode)) -1
 
 	pcb := PCB{
 		Id:       ram.getNextID(),
@@ -42,6 +42,7 @@ func (ram *RAMMemory) allocateProcess(start int, unparsedCode []string) PCB {
 		Start:    start,
 		End:      end,
 		CodeSize: len(unparsedCode),
+		ram:ram,
 	}
 
 	// allocate pcb in the first 6 words
@@ -71,6 +72,7 @@ func (ram *RAMMemory) allocateProcess(start int, unparsedCode []string) PCB {
 func (ram *RAMMemory) getProcessPCB(startLocation int) (PCB, error) {
 
 	id, idErr := strconv.Atoi(ram[startLocation])
+	state:=STATE(ram[startLocation+1])
 	pc, pcErr := strconv.Atoi(ram[startLocation+2])
 	start, startErr := strconv.Atoi(ram[startLocation+3])
 	end, endErr := strconv.Atoi(ram[startLocation+4])
@@ -82,7 +84,7 @@ func (ram *RAMMemory) getProcessPCB(startLocation int) (PCB, error) {
 
 	pcb := PCB{
 		Id:       id,
-		State:    STATE(ram[startLocation+1]),
+		State:    state,
 		PC:       pc,
 		Start:    start,
 		End:      end,

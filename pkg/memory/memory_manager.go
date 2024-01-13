@@ -15,8 +15,8 @@ const (
 var (
 	nextId = 1
 
-	NotEnoughSpaceErr    = errors.New("not enough space in the memory")
-	ProcessIdNotFoundErr = errors.New("process id is not found")
+	NotEnoughSpaceErr      = errors.New("not enough space in the memory")
+	ProcessIdNotFoundErr   = errors.New("process id is not found")
 	InternalMemoryErrorErr = errors.New("internal memory error")
 )
 
@@ -27,9 +27,8 @@ type MemoryManager struct {
 	processLocation map[int]int
 }
 
-
 func getProcessSize(unparsedCodeSize int) int {
-	return unparsedCodeSize + variablesSize + PCBSize
+	return PCBSize + unparsedCodeSize + variablesSize
 }
 
 // AddProcess creates process and save it in memory
@@ -48,19 +47,19 @@ func (m *MemoryManager) AddProcess(unparsedCode []string) (PCB, error) {
 }
 
 // DeleteProcess deletes process from memory
-func (m *MemoryManager) DeleteProcess(id int) error {
-	processStartLocation:=m.processLocation[id]
+func (m *MemoryManager) DeleteProcess(processId int) error {
+	processStartLocation := m.processLocation[processId]
 
 	if processStartLocation == 0 {
 		return ProcessIdNotFoundErr
 	}
 
-	pcb,err:=m.ram.getProcessPCB(processStartLocation)
+	pcb, err := m.ram.getProcessPCB(processStartLocation)
 	if err != nil {
 		return InternalMemoryErrorErr
 	}
-	
-	m.processLocation[id]=0
+
+	delete(m.processLocation,processId)
 	pcb.delete()
 	return nil
 }
