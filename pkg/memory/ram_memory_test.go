@@ -37,7 +37,7 @@ func TestAllocateProcess(t *testing.T) {
 	}
 
 	expectedPCBInMemory := []string{
-		"running",
+		string(Ready),
 		"16",
 		"10",
 		"22",

@@ -37,7 +37,7 @@ func (ram *RAMMemory) allocateProcess(start int, unparsedCode []string) PCB {
 
 	pcb := PCB{
 		Id:       ram.getNextID(),
-		State:    Running,
+		State:    Ready,
 		PC:       start + PCBSize,
 		Start:    start,
 		End:      end,
