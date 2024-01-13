@@ -19,6 +19,13 @@ var (
 	ProtectionErr        = errors.New("not allowed to access that part of memory")
 )
 
+type PCBManager interface {
+	GetNextInstruction() (string, error)
+	IncrementPC() error
+	SetDataWord(virtualLocation int, data int) error
+	GetDataWord(virtualLocation int) (string, error)
+}
+
 type PCB struct {
 	Id       int
 	State    STATE

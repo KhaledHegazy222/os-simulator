@@ -27,6 +27,19 @@ type MemoryManager struct {
 	processLocation map[int]int
 }
 
+type Memory interface {
+	AddProcess(unparsedCode []string) (PCB, error)
+	DeleteProcess(processId int) error
+}
+
+func NewMemoryManager() MemoryManager {
+	ram := RAMMemory{}
+	return MemoryManager{
+		ram:             ram,
+		processLocation: make(map[int]int),
+	}
+}
+
 func getProcessSize(unparsedCodeSize int) int {
 	return PCBSize + unparsedCodeSize + variablesSize
 }
@@ -59,7 +72,7 @@ func (m *MemoryManager) DeleteProcess(processId int) error {
 		return InternalMemoryErrorErr
 	}
 
-	delete(m.processLocation,processId)
+	delete(m.processLocation, processId)
 	pcb.delete()
 	return nil
 }
