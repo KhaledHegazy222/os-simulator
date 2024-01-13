@@ -14,10 +14,7 @@ var UnableToRetrievePCBErr = errors.New("not able to retrieve PCB from memory")
 type RAMMemory [memorySize]string
 
 
-func (ram *RAMMemory) getNextID() int {
-	nextId++
-	return nextId
-}
+
 
 func (ram *RAMMemory) isFree(from int, to int) bool {
 	if from > memoryEndAddress || from < memoryStartAddress || to > memoryEndAddress || to < memoryStartAddress {
@@ -32,11 +29,11 @@ func (ram *RAMMemory) isFree(from int, to int) bool {
 	return true
 }
 
-func (ram *RAMMemory) allocateProcess(start int, unparsedCode []string) PCB {
+func (ram *RAMMemory) allocateProcess(start int, unparsedCode []string,id int) PCB {
 	end := start + getProcessSize(len(unparsedCode)) -1
 
 	pcb := PCB{
-		Id:       ram.getNextID(),
+		Id:       id,
 		State:    Ready,
 		PC:       start + PCBSize,
 		Start:    start,

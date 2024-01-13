@@ -15,7 +15,7 @@ func TestAllocateProcess(t *testing.T) {
 		"assign x 4",
 	}
 
-	found := ram.allocateProcess(10, unparsedCode)
+	found := ram.allocateProcess(10, unparsedCode,1)
 
 	expected := PCB{
 		Start:    10,
@@ -60,7 +60,7 @@ func TestGetProcessPCB(t *testing.T) {
 			"semWait file",
 		}
 
-		pcb := ram.allocateProcess(10, unparsedCode)
+		pcb := ram.allocateProcess(10, unparsedCode,1)
 
 		found, err := ram.getProcessPCB(10)
 
@@ -81,7 +81,7 @@ func TestGetProcessPCB(t *testing.T) {
 			"semWait file",
 		}
 
-		ram.allocateProcess(10, unparsedCode)
+		ram.allocateProcess(10, unparsedCode,2)
 
 		_, err := ram.getProcessPCB(12)
 

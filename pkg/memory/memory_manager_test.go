@@ -80,11 +80,7 @@ func TestAddProcess(t *testing.T) {
 }
 
 func TestDeleteProcess(t *testing.T) {
-	var ram RAMMemory
-	memoryManager := MemoryManager{
-		ram:             ram,
-		processLocation: make(map[int]int),
-	}
+	memoryManager := NewMemoryManager()
 
 	pcb, err := memoryManager.AddProcess(unparsedCode)
 
