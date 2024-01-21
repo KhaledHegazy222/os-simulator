@@ -24,14 +24,8 @@ func (i *Interpreter) getSymbolTable(process memory.PCB) symbolTable {
 	return symTable
 }
 
-func (i *Interpreter) typeCheck(tokenType parameterType, checkedType parameterType) bool {
-	if checkedType == ANY {
-		return true
-	}
-	return tokenType == checkedType
-}
-
-func (i *Interpreter) decodeArgs(instruction *Instruction, command allowedCommand, symTable symbolTable) error {
+func (i *Interpreter) decodeArgs(instruction *Instruction, process memory.PCB) error {
+	symTable := i.getSymbolTable(process)
 	if instruction.Command == "assign" {
 		// Allocate the variable if not defined
 		i.allocateIfNotDefined(instruction.Args[0], symTable)
@@ -41,20 +35,16 @@ func (i *Interpreter) decodeArgs(instruction *Instruction, command allowedComman
 	for index, arg := range instruction.Args {
 
 		if i.isSymbol(arg) {
-			_, isPresent := symTable[arg]
+			address, isPresent := symTable[arg]
 			if !isPresent {
 				return errUndefinedSymbol
 			}
 			// get data of address of data
-			arg = "memory[address]"
-		}
-		value, valueType, err := i.getValueType(arg)
-		if err != nil {
-			return err
-		}
-		instruction.Args[index] = value
-		if !i.typeCheck(valueType, command.parameters[index]) {
-			return errInvalidArgumentType
+			data, err := process.GetDataWord(address)
+			if err != nil {
+				return err
+			}
+			instruction.Args[index] = data
 		}
 	}
 

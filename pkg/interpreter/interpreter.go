@@ -50,14 +50,18 @@ func (i *Interpreter) Execute(process memory.PCB) error {
 	}
 
 	// Decode Instruction arguments
-	symTable := i.getSymbolTable(process)
-	err = i.decodeArgs(&instruction, command, symTable)
+	err = i.decodeArgs(&instruction, process)
+	if err != nil {
+		return err
+	}
+
+	err = i.matchTypes(&instruction, command)
 	if err != nil {
 		return err
 	}
 
 	// execute Instruction
-	// command.run(instruction)
+	command.run(instruction)
 
 	return nil
 
@@ -74,4 +78,25 @@ func (i *Interpreter) matchCommand(instruction Instruction) (allowedCommand, err
 	}
 
 	return matchedCommand, nil
+}
+
+func (i *Interpreter) matchTypes(instruction *Instruction, command allowedCommand) error {
+	for index, arg := range instruction.Args {
+		value, valueType, err := i.getValueType(arg)
+		if err != nil {
+			return err
+		}
+		instruction.Args[index] = value
+		if !i.typeCheck(valueType, command.parameters[index]) {
+			return errInvalidArgumentType
+		}
+	}
+	return nil
+}
+
+func (i *Interpreter) typeCheck(tokenType parameterType, checkedType parameterType) bool {
+	if checkedType == ANY {
+		return true
+	}
+	return tokenType == checkedType
 }
