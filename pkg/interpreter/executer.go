@@ -20,7 +20,7 @@ type allowedCommand struct {
 }
 
 var availableCommands = map[string]allowedCommand{
-	"assign":      {command: "assign", parameters: []parameterType{ANY, ANY}, run: runAssign},
+	"assign":      {command: "assign", parameters: []parameterType{INTEGER, ANY}, run: runAssign},
 	"print":       {command: "print", parameters: []parameterType{ANY}, run: runPrint},
 	"semWait":     {command: "semWait", parameters: []parameterType{STRING}, run: runSemWait},
 	"semSignal":   {command: "semSignal", parameters: []parameterType{STRING}, run: runSemSignal},

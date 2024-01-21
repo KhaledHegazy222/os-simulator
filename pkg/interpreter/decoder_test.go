@@ -7,7 +7,7 @@ import (
 	"github.com/KhaledHegazy222/os-simulator/pkg/memory"
 )
 
-func TestDecoderToken(t *testing.T) {
+func TestGetTokenType(t *testing.T) {
 	tests := map[string]struct {
 		token         string
 		expectedValue string
@@ -28,7 +28,7 @@ func TestDecoderToken(t *testing.T) {
 	for testName, test := range tests {
 		t.Run(testName, func(t *testing.T) {
 			i := NewInterpreter(memory.MemoryManager{})
-			actualValue, actualType, err := i.decodeToken(test.token)
+			actualValue, actualType, err := i.getValueType(test.token)
 			if err != test.expectedErr {
 				t.Fatalf("Unexpected Error Mismatch expected %q found %q\n", test.expectedErr, err)
 			}
