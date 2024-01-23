@@ -20,6 +20,7 @@ var errBlockedProcess = errors.New("the process is currently blocked and can't e
 var errInvalidCommand = errors.New("the process is currently blocked and can't execute")
 var errInsufficientArguments = errors.New("the process is currently blocked and can't execute")
 var errInvalidArgumentType = errors.New("the process is currently blocked and can't execute")
+var errRunTimeError = errors.New("Run Time Error")
 
 func NewInterpreter(memoryManager memory.MemoryManager) Interpreter {
 	return Interpreter{
@@ -28,7 +29,7 @@ func NewInterpreter(memoryManager memory.MemoryManager) Interpreter {
 	}
 }
 
-func (i *Interpreter) Execute(process memory.PCB) error {
+func (i *Interpreter) Execute(process *memory.PCB) error {
 
 	// Return if Blocked
 	if process.State == memory.Blocked {
@@ -59,9 +60,13 @@ func (i *Interpreter) Execute(process memory.PCB) error {
 	if err != nil {
 		return err
 	}
-
 	// execute Instruction
-	command.run(instruction)
+	status := command.run(instruction, process)
+	if status == SUCCESS {
+		process.IncrementPC()
+	} else{
+		return errRunTimeError
+	}
 
 	return nil
 

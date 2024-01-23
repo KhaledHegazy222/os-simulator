@@ -14,7 +14,7 @@ type processId int
 var errType = errors.New("Type error")
 var errUndefinedSymbol = errors.New("Undefined Symbol")
 
-func (i *Interpreter) getSymbolTable(process memory.PCB) symbolTable {
+func (i *Interpreter) getSymbolTable(process *memory.PCB) symbolTable {
 	// if not executed before init Process
 	_, isPresent := i.processToSymbolTable[processId(process.Id)]
 	if !isPresent {
@@ -24,7 +24,7 @@ func (i *Interpreter) getSymbolTable(process memory.PCB) symbolTable {
 	return symTable
 }
 
-func (i *Interpreter) decodeArgs(instruction *Instruction, process memory.PCB) error {
+func (i *Interpreter) decodeArgs(instruction *Instruction, process* memory.PCB) error {
 	symTable := i.getSymbolTable(process)
 	if instruction.Command == "assign" {
 		// Allocate the variable if not defined
@@ -33,7 +33,7 @@ func (i *Interpreter) decodeArgs(instruction *Instruction, process memory.PCB) e
 		instruction.Args[0] = strconv.Itoa(symTable[instruction.Args[0]])
 	}
 	for index, arg := range instruction.Args {
-
+	
 		if i.isSymbol(arg) {
 			address, isPresent := symTable[arg]
 			if !isPresent {

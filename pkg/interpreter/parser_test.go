@@ -47,7 +47,7 @@ func TestParser(t *testing.T) {
 		}
 
 	})
-	
+
 	t.Run("Testing String Literal Args with spaces", func(t *testing.T) {
 		i := NewInterpreter(memory.MemoryManager{})
 		actual := i.parse("assign x \"string content test\"")
@@ -60,5 +60,5 @@ func TestParser(t *testing.T) {
 		}
 
 	})
-	
+
 }

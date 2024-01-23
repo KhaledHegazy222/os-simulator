@@ -1,22 +1,29 @@
 package interpreter
 
 import (
-	"fmt"
 	"strconv"
+
+	"github.com/KhaledHegazy222/os-simulator/pkg/memory"
+	"github.com/KhaledHegazy222/os-simulator/pkg/systemcalls"
 )
 
 type parameterType int8
+type statusCode int8
 
 const (
 	INTEGER parameterType = 0
 	STRING  parameterType = 1
 	ANY     parameterType = 2
 )
+const (
+	SUCCESS statusCode = 0
+	ERROR   statusCode = 1
+)
 
 type allowedCommand struct {
 	command    string
 	parameters []parameterType
-	run        func(instruction Instruction)
+	run        func(instruction Instruction, process *memory.PCB) statusCode
 }
 
 var availableCommands = map[string]allowedCommand{
@@ -29,29 +36,71 @@ var availableCommands = map[string]allowedCommand{
 	"printFromTo": {command: "printFromTo", parameters: []parameterType{INTEGER, INTEGER}, run: runPrintFromTo},
 }
 
-func runAssign(instruction Instruction) {
-
-}
-func runPrint(instruction Instruction) {
-	printedValue := instruction.Args[0]
-	fmt.Println(printedValue)
-}
-func runSemWait(instruction Instruction) {
-
-}
-func runSemSignal(instruction Instruction) {
-
-}
-func runWriteFile(instruction Instruction) {
-
-}
-func runReadFile(instruction Instruction) {
-	
-}
-func runPrintFromTo(instruction Instruction) {
-	start, _ := strconv.Atoi(instruction.Args[0])
-	end, _ := strconv.Atoi(instruction.Args[1])
-	for i := start; i <= end; i++ {
-		fmt.Println(i)
+func runAssign(instruction Instruction, process *memory.PCB) statusCode {
+	destinationAddress, err := strconv.Atoi(instruction.Args[0])
+	if err != nil {
+		return ERROR
 	}
+	value, err := strconv.Atoi(instruction.Args[1])
+	if err != nil {
+		return ERROR
+	}
+	process.SetDataWord(destinationAddress, value)
+	return SUCCESS
+
+}
+func runPrint(instruction Instruction, process *memory.PCB) statusCode {
+	os := systemcalls.NewOS()
+	data := instruction.Args[0]
+	os.PrintToStdOut(data)
+	return SUCCESS
+}
+func runSemWait(instruction Instruction, process *memory.PCB) statusCode {
+	return SUCCESS
+
+}
+func runSemSignal(instruction Instruction, process *memory.PCB) statusCode {
+	return SUCCESS
+
+}
+func runWriteFile(instruction Instruction, process *memory.PCB) statusCode {
+	os := systemcalls.NewOS()
+	path, data := instruction.Args[0], instruction.Args[1]
+
+	err := os.WriteToFile(path, data)
+	if err != nil {
+		return ERROR
+	}
+	return SUCCESS
+
+}
+func runReadFile(instruction Instruction, process *memory.PCB) statusCode {
+	os := systemcalls.NewOS()
+	path := instruction.Args[0]
+	_, err := strconv.Atoi(instruction.Args[1])
+	if err != nil {
+		return ERROR
+	}
+
+	_, err = os.ReadFile(path)
+	if err != nil {
+		return ERROR
+	}
+	return SUCCESS
+
+}
+func runPrintFromTo(instruction Instruction, process *memory.PCB) statusCode {
+	os := systemcalls.NewOS()
+	start, err := strconv.Atoi(instruction.Args[0])
+	if err != nil {
+		return ERROR
+	}
+	end, err := strconv.Atoi(instruction.Args[1])
+	if err != nil {
+		return ERROR
+	}
+	for i := start; i <= end; i++ {
+		os.PrintToStdOut(strconv.Itoa(i))
+	}
+	return SUCCESS
 }
