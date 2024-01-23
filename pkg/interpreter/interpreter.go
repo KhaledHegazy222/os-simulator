@@ -4,6 +4,7 @@ package interpreter
 
 import (
 	"errors"
+	"os"
 
 	"github.com/KhaledHegazy222/os-simulator/pkg/memory"
 )
@@ -101,7 +102,8 @@ func (i *Interpreter) matchCommand(instruction Instruction) (allowedCommand, err
 // matchTypes checks if the arguments of the instruction match the expected types.
 func (i *Interpreter) matchTypes(instruction *Instruction, command allowedCommand) error {
 	for index, arg := range instruction.Args {
-		value, valueType, err := i.getValueType(arg)
+		value, valueType, err := i.getValueType(arg, os.Stdin)
+		print(value)
 		if err != nil {
 			return err
 		}

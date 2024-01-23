@@ -1,7 +1,9 @@
 package interpreter
 
 import (
+	"bufio"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/KhaledHegazy222/os-simulator/pkg/memory"
@@ -10,25 +12,36 @@ import (
 func TestGetValueType(t *testing.T) {
 	tests := map[string]struct {
 		token         string
+		userInput     string
 		expectedValue string
 		expectedType  parameterType
 		expectedErr   error
 	}{"Test Decode string literal token": {
 		token:         "\"This is String Literal\"",
+		userInput:     "",
 		expectedValue: "This is String Literal",
 		expectedType:  STRING,
 		expectedErr:   nil,
 	}, "Test Decode numeric literal token": {
 		token:         "120",
+		userInput:     "",
 		expectedValue: "120",
 		expectedType:  INTEGER,
+		expectedErr:   nil,
+	}, "Test Decode user input token": {
+		token:         "input",
+		userInput:     "data",
+		expectedValue: "data",
+		expectedType:  STRING,
 		expectedErr:   nil,
 	},
 	}
 	for testName, test := range tests {
 		t.Run(testName, func(t *testing.T) {
 			i := NewInterpreter(memory.MemoryManager{})
-			actualValue, actualType, err := i.getValueType(test.token)
+
+			reader := bufio.NewReader(strings.NewReader(test.userInput))
+			actualValue, actualType, err := i.getValueType(test.token, reader)
 			if err != test.expectedErr {
 				t.Fatalf("Unexpected Error Mismatch expected %q found %q\n", test.expectedErr, err)
 			}

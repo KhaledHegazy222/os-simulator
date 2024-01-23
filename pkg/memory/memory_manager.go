@@ -29,7 +29,7 @@ type MemoryManager struct {
 
 // Memory interface that handles addition and deletion of processes in memory
 type Memory interface {
-	AddProcess(unparsedCode []string) (PCBManager, error)
+	AddProcess(unparsedCode []string) (PCB, error)
 	DeleteProcess(processId int) error
 }
 

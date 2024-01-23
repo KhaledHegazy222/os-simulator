@@ -2,6 +2,8 @@ package interpreter
 
 import (
 	"errors"
+	"fmt"
+	"io"
 	"strconv"
 	"strings"
 
@@ -61,12 +63,14 @@ func (i *Interpreter) decodeArgs(instruction *Instruction, process *memory.PCB) 
 }
 
 // getValueType returns the value and type of a token (argument).
-func (i *Interpreter) getValueType(token string) (value string, valueType parameterType, err error) {
+func (i *Interpreter) getValueType(token string, reader io.Reader) (value string, valueType parameterType, err error) {
 	if len(token) > 2 && strings.HasPrefix(token, "\"") && strings.HasSuffix(token, "\"") {
 		croppedToken := token[1 : len(token)-1]
 		return croppedToken, STRING, nil
 	} else if token == "input" {
-		return "input", STRING, nil
+		var data string
+		fmt.Fscanf(reader, "%s", &data)
+		return data, STRING, nil
 	} else if _, conversionErr := strconv.Atoi(token); conversionErr == nil {
 		return token, INTEGER, nil
 	} else {
@@ -76,6 +80,9 @@ func (i *Interpreter) getValueType(token string) (value string, valueType parame
 
 // isSymbol checks if the token is a symbol (variable) rather than a literal value.
 func (i *Interpreter) isSymbol(token string) bool {
+	if token == "input"{
+		return false
+	}
 	if len(token) > 2 && strings.HasPrefix(token, "\"") && strings.HasSuffix(token, "\"") {
 		return false
 	}
