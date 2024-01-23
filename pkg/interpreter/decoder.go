@@ -8,12 +8,20 @@ import (
 	"github.com/KhaledHegazy222/os-simulator/pkg/memory"
 )
 
+// symbolTable is a map representing the symbol table for variables.
 type symbolTable map[string]int
+
+// processId is a type representing the unique identifier for a process.
 type processId int
 
-var errType = errors.New("Type error")
-var errUndefinedSymbol = errors.New("Undefined Symbol")
+var (
+	// errType is a common error for a type error during value conversion.
+	errType = errors.New("type error")
+	// errUndefinedSymbol is a common error for accessing an undefined symbol in the symbol table.
+	errUndefinedSymbol = errors.New("undefined symbol")
+)
 
+// getSymbolTable returns the symbol table for the given process, initializing it if not present.
 func (i *Interpreter) getSymbolTable(process *memory.PCB) symbolTable {
 	// if not executed before init Process
 	_, isPresent := i.processToSymbolTable[processId(process.Id)]
@@ -24,7 +32,8 @@ func (i *Interpreter) getSymbolTable(process *memory.PCB) symbolTable {
 	return symTable
 }
 
-func (i *Interpreter) decodeArgs(instruction *Instruction, process* memory.PCB) error {
+// decodeArgs decodes and updates the arguments in the instruction based on the symbol table.
+func (i *Interpreter) decodeArgs(instruction *Instruction, process *memory.PCB) error {
 	symTable := i.getSymbolTable(process)
 	if instruction.Command == "assign" {
 		// Allocate the variable if not defined
@@ -33,7 +42,7 @@ func (i *Interpreter) decodeArgs(instruction *Instruction, process* memory.PCB) 
 		instruction.Args[0] = strconv.Itoa(symTable[instruction.Args[0]])
 	}
 	for index, arg := range instruction.Args {
-	
+
 		if i.isSymbol(arg) {
 			address, isPresent := symTable[arg]
 			if !isPresent {
@@ -51,6 +60,7 @@ func (i *Interpreter) decodeArgs(instruction *Instruction, process* memory.PCB) 
 	return nil
 }
 
+// getValueType returns the value and type of a token (argument).
 func (i *Interpreter) getValueType(token string) (value string, valueType parameterType, err error) {
 	if len(token) > 2 && strings.HasPrefix(token, "\"") && strings.HasSuffix(token, "\"") {
 		croppedToken := token[1 : len(token)-1]
@@ -62,8 +72,9 @@ func (i *Interpreter) getValueType(token string) (value string, valueType parame
 	} else {
 		return "", ANY, errType
 	}
-
 }
+
+// isSymbol checks if the token is a symbol (variable) rather than a literal value.
 func (i *Interpreter) isSymbol(token string) bool {
 	if len(token) > 2 && strings.HasPrefix(token, "\"") && strings.HasSuffix(token, "\"") {
 		return false
@@ -74,6 +85,7 @@ func (i *Interpreter) isSymbol(token string) bool {
 
 }
 
+// allocateIfNotDefined allocates a new address for a symbol if it is not already defined.
 func (i *Interpreter) allocateIfNotDefined(symbol string, symTable symbolTable) {
 	_, isPresent := symTable[symbol]
 	if !isPresent {

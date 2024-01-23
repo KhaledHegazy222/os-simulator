@@ -74,6 +74,7 @@ func (p *PCB) IncrementPC() error {
 	return nil
 }
 
+// TODO: Modify the data field to string
 // SetDataWord put data in memory in the specified location
 func (p *PCB) SetDataWord(virtualLocation int, data int) error {
 	if virtualLocation < 0 || virtualLocation > 3 {

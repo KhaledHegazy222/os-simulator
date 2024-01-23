@@ -1,3 +1,5 @@
+// Package interpreter provides an interpreter for processing instructions
+// in the context of an operating system simulation.
 package interpreter
 
 import (
@@ -6,22 +8,32 @@ import (
 	"github.com/KhaledHegazy222/os-simulator/pkg/memory"
 )
 
+// Interpreter represents the interpreter for processing instructions.
 type Interpreter struct {
 	memory               *memory.MemoryManager
 	processToSymbolTable map[processId]symbolTable
 }
 
+// Instruction represents a single instruction with a command and its arguments.
 type Instruction struct {
 	Command string
 	Args    []string
 }
 
-var errBlockedProcess = errors.New("the process is currently blocked and can't execute")
-var errInvalidCommand = errors.New("the process is currently blocked and can't execute")
-var errInsufficientArguments = errors.New("the process is currently blocked and can't execute")
-var errInvalidArgumentType = errors.New("the process is currently blocked and can't execute")
-var errRunTimeError = errors.New("Run Time Error")
+var (
+	// Common error for a blocked process.
+	errBlockedProcess = errors.New("the process is currently blocked and can't execute")
+	// Common error for an invalid command.
+	errInvalidCommand = errors.New("invalid command")
+	// Common error for insufficient arguments for a command.
+	errInsufficientArguments = errors.New("insufficient arguments for the command")
+	// Common error for an invalid argument type.
+	errInvalidArgumentType = errors.New("invalid argument type")
+	// Common error for a runtime error during instruction execution.
+	errRunTimeError = errors.New("runtime error")
+)
 
+// NewInterpreter creates a new Interpreter instance with the provided memory manager.
 func NewInterpreter(memoryManager memory.MemoryManager) Interpreter {
 	return Interpreter{
 		memory:               &memoryManager,
@@ -29,8 +41,8 @@ func NewInterpreter(memoryManager memory.MemoryManager) Interpreter {
 	}
 }
 
+// Execute executes the next instruction for the given process.
 func (i *Interpreter) Execute(process *memory.PCB) error {
-
 	// Return if Blocked
 	if process.State == memory.Blocked {
 		return errBlockedProcess
@@ -60,18 +72,19 @@ func (i *Interpreter) Execute(process *memory.PCB) error {
 	if err != nil {
 		return err
 	}
-	// execute Instruction
+
+	// Execute Instruction
 	status := command.run(instruction, process)
 	if status == SUCCESS {
 		process.IncrementPC()
-	} else{
+	} else {
 		return errRunTimeError
 	}
 
 	return nil
-
 }
 
+// matchCommand matches the instruction command with the available commands.
 func (i *Interpreter) matchCommand(instruction Instruction) (allowedCommand, error) {
 	matchedCommand, isPresent := availableCommands[instruction.Command]
 	if !isPresent {
@@ -85,6 +98,7 @@ func (i *Interpreter) matchCommand(instruction Instruction) (allowedCommand, err
 	return matchedCommand, nil
 }
 
+// matchTypes checks if the arguments of the instruction match the expected types.
 func (i *Interpreter) matchTypes(instruction *Instruction, command allowedCommand) error {
 	for index, arg := range instruction.Args {
 		value, valueType, err := i.getValueType(arg)
@@ -99,6 +113,7 @@ func (i *Interpreter) matchTypes(instruction *Instruction, command allowedComman
 	return nil
 }
 
+// typeCheck checks if the provided token type matches the expected type.
 func (i *Interpreter) typeCheck(tokenType parameterType, checkedType parameterType) bool {
 	if checkedType == ANY {
 		return true

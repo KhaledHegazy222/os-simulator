@@ -2,6 +2,7 @@ package interpreter
 
 import "strings"
 
+// parse parses a given line of code and returns an Instruction.
 func (i *Interpreter) parse(line string) Instruction {
 	tokens := strings.Split(line, " ")
 	command := tokens[0]

@@ -7,7 +7,7 @@ import (
 	"github.com/KhaledHegazy222/os-simulator/pkg/memory"
 )
 
-func TestGetTokenType(t *testing.T) {
+func TestGetValueType(t *testing.T) {
 	tests := map[string]struct {
 		token         string
 		expectedValue string
