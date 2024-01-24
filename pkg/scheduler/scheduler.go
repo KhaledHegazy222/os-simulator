@@ -7,8 +7,8 @@ import (
 )
 
 type Scheduler struct {
-	readyQueue           []*memory.PCB
-	blockedQueue         []*memory.PCB
+	readyQueue           queue
+	blockedQueue         queue
 	ReadyProcessIterator int
 }
 
@@ -35,7 +35,7 @@ func (s *Scheduler) AddToReadyQueue(process *memory.PCB) error {
 	if process.State != memory.Ready {
 		return ErrProcessNotReady
 	}
-	s.readyQueue = append(s.readyQueue, process)
+	s.readyQueue.append(process)
 	return nil
 }
 
@@ -98,14 +98,12 @@ func (s *Scheduler) addToBlockedQueue(process *memory.PCB) error {
 	if process.State != memory.Blocked {
 		return ErrProcessNotBlocked
 	}
-	s.blockedQueue = append(s.blockedQueue, process)
+	s.blockedQueue.append(process)
 	return nil
 }
 
 func (s *Scheduler) removeFromBlockedQueue(index int) *memory.PCB {
-	pcb := s.blockedQueue[index]
-	s.blockedQueue = append(s.blockedQueue[:index], s.blockedQueue[index+1:]...)
-	return pcb
+	return s.blockedQueue.delete(index)
 }
 
 func (s *Scheduler) removeFromReadyQueue(index int) *memory.PCB {
@@ -116,7 +114,5 @@ func (s *Scheduler) removeFromReadyQueue(index int) *memory.PCB {
 		s.ReadyProcessIterator=0
 	}
 
-	pcb := s.readyQueue[index]
-	s.readyQueue = append(s.readyQueue[:index], s.readyQueue[index+1:]...)
-	return pcb
+	return s.readyQueue.delete(index)
 }

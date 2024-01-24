@@ -112,9 +112,12 @@ func TestBlockProcess(t *testing.T) {
 	})
 	t.Run("block existing process", func(t *testing.T) {
 		s := NewScheduler()
-
+		testProcess := &memory.PCB{
+			Id:    1,
+			State: memory.Ready,
+		}
 		// add two ready processes to the ready queue
-		if err := s.AddToReadyQueue(processA); err != nil {
+		if err := s.AddToReadyQueue(testProcess); err != nil {
 			t.Errorf("expected nil, found %v", err)
 		}
 		if err := s.AddToReadyQueue(processC); err != nil {
@@ -122,7 +125,7 @@ func TestBlockProcess(t *testing.T) {
 		}
 
 		// block a process and check moving the process from ready queue to blocked queue.
-		if err := s.BlockProcess(processA.Id); err != nil {
+		if err := s.BlockProcess(testProcess.Id); err != nil {
 			t.Errorf("expected nil, found %v", err)
 		}
 		if len(s.readyQueue) != 1 && !reflect.DeepEqual(s.readyQueue[0], processC) {
@@ -130,9 +133,9 @@ func TestBlockProcess(t *testing.T) {
 			t.Errorf("expected %v, found %v", processC, s.blockedQueue[0])
 
 		}
-		if len(s.blockedQueue) != 1 && !reflect.DeepEqual(s.blockedQueue[0], processA) {
+		if len(s.blockedQueue) != 1 && !reflect.DeepEqual(s.blockedQueue[0], testProcess) {
 			t.Errorf("expected 1, found %v", len(s.blockedQueue))
-			t.Errorf("expected %v, found %v", processA, s.blockedQueue[0])
+			t.Errorf("expected %v, found %v", testProcess, s.blockedQueue[0])
 		}
 	})
 }
@@ -151,8 +154,12 @@ func TestUnblockProcess(t *testing.T) {
 	t.Run("unblock existing process", func(t *testing.T) {
 		s := NewScheduler()
 
+		testProcess := &memory.PCB{
+			Id:    1,
+			State: memory.Blocked,
+		}
 		// add two blocked processes to the blocked queue
-		if err := s.addToBlockedQueue(processB); err != nil {
+		if err := s.addToBlockedQueue(testProcess); err != nil {
 			t.Errorf("expected nil, found %v", err)
 		}
 		if err := s.addToBlockedQueue(processF); err != nil {
@@ -160,13 +167,13 @@ func TestUnblockProcess(t *testing.T) {
 		}
 
 		// unblock a process and check moving the process from blocked queue to ready queue.
-		if err := s.UnBlockProcess(processB.Id); err != nil {
+		if err := s.UnBlockProcess(testProcess.Id); err != nil {
 			t.Errorf("expected nil, found %v", err)
 		}
 
-		if len(s.readyQueue) != 1 && !reflect.DeepEqual(s.readyQueue[0], processB) {
+		if len(s.readyQueue) != 1 && !reflect.DeepEqual(s.readyQueue[0], testProcess) {
 			t.Errorf("expected 1, found %v", len(s.readyQueue))
-			t.Errorf("expected %v, found %v", processB, s.readyQueue[0])
+			t.Errorf("expected %v, found %v", testProcess, s.readyQueue[0])
 		}
 
 		if len(s.blockedQueue) != 1 && !reflect.DeepEqual(s.blockedQueue[0], processE) {
@@ -199,7 +206,7 @@ func TestTerminateProcess(t *testing.T) {
 		}
 
 		// terminate a process and check removing the process from ready queue.
-		if err := s.BlockProcess(processA.Id); err != nil {
+		if err := s.TerminateProcess(processA.Id); err != nil {
 			t.Errorf("expected nil, found %v", err)
 		}
 		if len(s.readyQueue) != 1 && !reflect.DeepEqual(s.readyQueue[0], processC) {
@@ -298,7 +305,7 @@ func TestRemoveFromReadyQueue(t *testing.T) {
 			t.Errorf("expected %v, found %v", processD, process)
 		}
 
-		if expected := []*memory.PCB{processA, processC, processE}; !reflect.DeepEqual(s.readyQueue, expected) {
+		if expected := []*memory.PCB{processA, processC, processE}; !reflect.DeepEqual([]*memory.PCB(s.readyQueue), expected) {
 			t.Errorf("expected %v, found %v", expected, s.readyQueue)
 		}
 
@@ -324,7 +331,7 @@ func TestRemoveFromReadyQueue(t *testing.T) {
 			t.Errorf("expected %v, found %v", processC, process)
 		}
 
-		if expected := []*memory.PCB{processA, processD, processE}; !reflect.DeepEqual(s.readyQueue, expected) {
+		if expected := []*memory.PCB{processA, processD, processE}; !reflect.DeepEqual([]*memory.PCB(s.readyQueue), expected) {
 			t.Errorf("expected %v, found %v", expected, s.readyQueue)
 		}
 
@@ -361,7 +368,7 @@ func TestRemoveFromReadyQueue(t *testing.T) {
 			t.Errorf("expected %v, found %v", processE, process)
 		}
 
-		if expected := []*memory.PCB{processA, processC, processD}; !reflect.DeepEqual(s.readyQueue, expected) {
+		if expected := []*memory.PCB{processA, processC, processD}; !reflect.DeepEqual([]*memory.PCB(s.readyQueue), expected) {
 			t.Errorf("expected %v, found %v", expected, s.readyQueue)
 		}
 
@@ -398,7 +405,7 @@ func TestRemoveFromReadyQueue(t *testing.T) {
 			t.Errorf("expected %v, found %v", processC, process)
 		}
 
-		if expected := []*memory.PCB{processA, processD, processE}; !reflect.DeepEqual(s.readyQueue, expected) {
+		if expected := []*memory.PCB{processA, processD, processE}; !reflect.DeepEqual([]*memory.PCB(s.readyQueue), expected) {
 			t.Errorf("expected %v, found %v", expected, s.readyQueue)
 		}
 
