@@ -9,7 +9,7 @@ import (
 type Scheduler struct {
 	readyQueue           queue
 	blockedQueue         queue
-	ReadyProcessIterator int
+	readyProcessIterator int
 }
 
 var (
@@ -26,7 +26,7 @@ func NewScheduler() *Scheduler {
 	return &Scheduler{
 		readyQueue:           readyQueue,
 		blockedQueue:         blockedQueue,
-		ReadyProcessIterator: 0,
+		readyProcessIterator: 0,
 	}
 }
 
@@ -45,7 +45,7 @@ func (s *Scheduler) GetNextReadyProcess() (*memory.PCB, error) {
 		return &memory.PCB{}, ErrNoReadyProcesses
 	}
 
-	readyProcess := s.readyQueue[s.ReadyProcessIterator]
+	readyProcess := s.readyQueue[s.readyProcessIterator]
 	s.incrementIterator()
 	return readyProcess, nil
 }
@@ -55,6 +55,7 @@ func (s *Scheduler) BlockProcess(pid int) error {
 	for idx, process := range s.readyQueue {
 		if process.Id == pid {
 			pcb := s.removeFromReadyQueue(idx)
+			s.normalizeIterator(idx)
 			pcb.State = memory.Blocked
 			s.addToBlockedQueue(pcb)
 			return nil
@@ -81,6 +82,7 @@ func (s *Scheduler) TerminateProcess(pid int) error {
 	for idx, process := range s.readyQueue {
 		if process.Id == pid {
 			s.removeFromReadyQueue(idx)
+			s.normalizeIterator(idx)
 			return nil
 		}
 	}
@@ -88,9 +90,9 @@ func (s *Scheduler) TerminateProcess(pid int) error {
 }
 
 func (s *Scheduler) incrementIterator() {
-	s.ReadyProcessIterator++
-	if s.ReadyProcessIterator == len(s.readyQueue) {
-		s.ReadyProcessIterator = 0
+	s.readyProcessIterator++
+	if s.readyProcessIterator == len(s.readyQueue) {
+		s.readyProcessIterator = 0
 	}
 }
 
@@ -107,12 +109,14 @@ func (s *Scheduler) removeFromBlockedQueue(index int) *memory.PCB {
 }
 
 func (s *Scheduler) removeFromReadyQueue(index int) *memory.PCB {
-	if s.ReadyProcessIterator > index {
-		s.ReadyProcessIterator--
-	}
-	if s.ReadyProcessIterator == index && index==len(s.readyQueue)-1{
-		s.ReadyProcessIterator=0
-	}
-
 	return s.readyQueue.delete(index)
+}
+
+func (s *Scheduler) normalizeIterator(deletedIndex int){
+	if s.readyProcessIterator > deletedIndex {
+		s.readyProcessIterator--
+	}
+	if s.readyProcessIterator == deletedIndex && deletedIndex==len(s.readyQueue)-1{
+		s.readyProcessIterator=0
+	}
 }

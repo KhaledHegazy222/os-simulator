@@ -9,9 +9,21 @@ import (
 
 func TestAppend(t *testing.T) {
 	var q queue
-	q.append(processA)
-	q.append(processB)
-	q.append(processC)
+	firstProcess := &memory.PCB{
+		Id:    1,
+		State: memory.Ready,
+	}
+	secondProcess := &memory.PCB{
+		Id:    2,
+		State: memory.Ready,
+	}
+	thirdProcess := &memory.PCB{
+		Id:    3,
+		State: memory.Ready,
+	}
+	q.append(firstProcess)
+	q.append(secondProcess)
+	q.append(thirdProcess)
 
 	if len(q) != 3 {
 		t.Errorf("expected 3, found %v", len(q))
@@ -20,12 +32,24 @@ func TestAppend(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	var q queue
-	q.append(processA)
-	q.append(processB)
-	q.append(processC)
+	firstProcess := &memory.PCB{
+		Id:    1,
+		State: memory.Ready,
+	}
+	secondProcess := &memory.PCB{
+		Id:    2,
+		State: memory.Ready,
+	}
+	thirdProcess := &memory.PCB{
+		Id:    3,
+		State: memory.Ready,
+	}
+	q.append(firstProcess)
+	q.append(secondProcess)
+	q.append(thirdProcess)
 	q.delete(1)
 
-	expected := []*memory.PCB{processA, processC}
+	expected := []*memory.PCB{firstProcess, thirdProcess}
 
 	for i := 0; i < 2; i++ {
 		if !reflect.DeepEqual(q[i], expected[i]) {

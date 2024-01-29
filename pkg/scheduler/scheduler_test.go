@@ -7,53 +7,34 @@ import (
 	"github.com/KhaledHegazy222/os-simulator/pkg/memory"
 )
 
-var (
-	processA = &memory.PCB{
+func TestAddToReadyQueue(t *testing.T) {
+	s := NewScheduler()
+	firstReadyProcess := &memory.PCB{
 		Id:    1,
 		State: memory.Ready,
 	}
-	processB = &memory.PCB{
+	blockedProcess := &memory.PCB{
 		Id:    2,
 		State: memory.Blocked,
 	}
-	processC = &memory.PCB{
+	secondReadyProcess := &memory.PCB{
 		Id:    3,
 		State: memory.Ready,
 	}
-	processD = &memory.PCB{
-		Id:    4,
-		State: memory.Ready,
-	}
-	processE = &memory.PCB{
-		Id:    5,
-		State: memory.Ready,
-	}
-	processF = &memory.PCB{
-		Id:    5,
-		State: memory.Blocked,
-	}
-	processG = &memory.PCB{
-		Id:    5,
-		State: memory.Blocked,
-	}
-)
-
-func TestAddToReadyQueue(t *testing.T) {
-	s := NewScheduler()
 
 	if len(s.readyQueue) != 0 {
 		t.Errorf("expected 0, found %v", len(s.readyQueue))
 	}
 
-	if err := s.AddToReadyQueue(processA); err != nil {
+	if err := s.AddToReadyQueue(firstReadyProcess); err != nil {
 		t.Errorf("expected nil, found %v", err)
 	}
 
-	if err := s.AddToReadyQueue(processB); err != ErrProcessNotReady {
+	if err := s.AddToReadyQueue(blockedProcess); err != ErrProcessNotReady {
 		t.Errorf("expected %v, found %v", ErrProcessNotFound, err)
 	}
 
-	if err := s.AddToReadyQueue(processC); err != nil {
+	if err := s.AddToReadyQueue(secondReadyProcess); err != nil {
 		t.Errorf("expected nil, found %v", err)
 	}
 
@@ -64,47 +45,62 @@ func TestAddToReadyQueue(t *testing.T) {
 
 func TestGetNextReadyProcess(t *testing.T) {
 	s := NewScheduler()
+	firstReadyProcess := &memory.PCB{
+		Id:    1,
+		State: memory.Ready,
+	}
+	secondReadyProcess := &memory.PCB{
+		Id:    2,
+		State: memory.Ready,
+	}
+	thirdReadyProcess := &memory.PCB{
+		Id:    3,
+		State: memory.Ready,
+	}
 
 	if _, err := s.GetNextReadyProcess(); err != ErrNoReadyProcesses {
 		t.Errorf("expected %v, found %v", ErrNoReadyProcesses, err)
 	}
 
-	if err := s.AddToReadyQueue(processA); err != nil {
+	if err := s.AddToReadyQueue(firstReadyProcess); err != nil {
 		t.Errorf("expected nil, found %v", err)
 	}
 
-	if err := s.AddToReadyQueue(processC); err != nil {
+	if err := s.AddToReadyQueue(secondReadyProcess); err != nil {
 		t.Errorf("expected nil, found %v", err)
 	}
 
-	if err := s.AddToReadyQueue(processD); err != nil {
+	if err := s.AddToReadyQueue(thirdReadyProcess); err != nil {
 		t.Errorf("expected nil, found %v", err)
 	}
 
 	// get first process
-	if process, err := s.GetNextReadyProcess(); err != nil && !reflect.DeepEqual(process, processA) {
+	if process, err := s.GetNextReadyProcess(); err != nil && !reflect.DeepEqual(process, firstReadyProcess) {
 		t.Errorf("expected nil, found %v", err)
-		t.Errorf("expected %v, found %v", process, processA)
+		t.Errorf("expected %v, found %v", process, firstReadyProcess)
 	}
 
 	// get second process
-	if process, err := s.GetNextReadyProcess(); err != nil && !reflect.DeepEqual(process, processC) {
+	if process, err := s.GetNextReadyProcess(); err != nil && !reflect.DeepEqual(process, secondReadyProcess) {
 		t.Errorf("expected nil, found %v", err)
-		t.Errorf("expected %v, found %v", process, processC)
+		t.Errorf("expected %v, found %v", process, secondReadyProcess)
 	}
 
 	// get third process
-	if process, err := s.GetNextReadyProcess(); err != nil && !reflect.DeepEqual(process, processD) {
+	if process, err := s.GetNextReadyProcess(); err != nil && !reflect.DeepEqual(process, thirdReadyProcess) {
 		t.Errorf("expected nil, found %v", err)
-		t.Errorf("expected %v, found %v", process, processD)
+		t.Errorf("expected %v, found %v", process, thirdReadyProcess)
 	}
 }
 
 func TestBlockProcess(t *testing.T) {
 	t.Run("block not existing process", func(t *testing.T) {
 		s := NewScheduler()
-
-		s.AddToReadyQueue(processA)
+		readyProcess := &memory.PCB{
+			Id:    1,
+			State: memory.Ready,
+		}
+		s.AddToReadyQueue(readyProcess)
 		err := s.BlockProcess(1000)
 		if err != ErrProcessNotFound {
 			t.Errorf("expected %v, found %v", ErrProcessNotFound, err)
@@ -112,30 +108,34 @@ func TestBlockProcess(t *testing.T) {
 	})
 	t.Run("block existing process", func(t *testing.T) {
 		s := NewScheduler()
-		testProcess := &memory.PCB{
+		firstReadyProcess := &memory.PCB{
 			Id:    1,
 			State: memory.Ready,
 		}
+		secondReadyProcess := &memory.PCB{
+			Id:    2,
+			State: memory.Ready,
+		}
 		// add two ready processes to the ready queue
-		if err := s.AddToReadyQueue(testProcess); err != nil {
+		if err := s.AddToReadyQueue(firstReadyProcess); err != nil {
 			t.Errorf("expected nil, found %v", err)
 		}
-		if err := s.AddToReadyQueue(processC); err != nil {
+		if err := s.AddToReadyQueue(secondReadyProcess); err != nil {
 			t.Errorf("expected nil, found %v", err)
 		}
 
 		// block a process and check moving the process from ready queue to blocked queue.
-		if err := s.BlockProcess(testProcess.Id); err != nil {
+		if err := s.BlockProcess(firstReadyProcess.Id); err != nil {
 			t.Errorf("expected nil, found %v", err)
 		}
-		if len(s.readyQueue) != 1 && !reflect.DeepEqual(s.readyQueue[0], processC) {
+		if len(s.readyQueue) != 1 && !reflect.DeepEqual(s.readyQueue[0], secondReadyProcess) {
 			t.Errorf("expected 1, found %v", len(s.readyQueue))
-			t.Errorf("expected %v, found %v", processC, s.blockedQueue[0])
+			t.Errorf("expected %v, found %v", secondReadyProcess, s.blockedQueue[0])
 
 		}
-		if len(s.blockedQueue) != 1 && !reflect.DeepEqual(s.blockedQueue[0], testProcess) {
+		if len(s.blockedQueue) != 1 && !reflect.DeepEqual(s.blockedQueue[0], firstReadyProcess) {
 			t.Errorf("expected 1, found %v", len(s.blockedQueue))
-			t.Errorf("expected %v, found %v", testProcess, s.blockedQueue[0])
+			t.Errorf("expected %v, found %v", firstReadyProcess, s.blockedQueue[0])
 		}
 	})
 }
@@ -143,9 +143,13 @@ func TestBlockProcess(t *testing.T) {
 func TestUnblockProcess(t *testing.T) {
 	t.Run("unblock not existing process", func(t *testing.T) {
 		s := NewScheduler()
-
-		s.addToBlockedQueue(processB)
-		err := s.UnBlockProcess(1000)
+		blockedProcess := &memory.PCB{
+			Id:    1,
+			State: memory.Blocked,
+		}
+		notFoundId := 1000
+		s.addToBlockedQueue(blockedProcess)
+		err := s.UnBlockProcess(notFoundId)
 		if err != ErrProcessNotFound {
 			t.Errorf("expected %v, found %v", ErrProcessNotFound, err)
 		}
@@ -154,31 +158,35 @@ func TestUnblockProcess(t *testing.T) {
 	t.Run("unblock existing process", func(t *testing.T) {
 		s := NewScheduler()
 
-		testProcess := &memory.PCB{
+		firstBlockedProcess := &memory.PCB{
 			Id:    1,
 			State: memory.Blocked,
 		}
+		secondBlockedProcess := &memory.PCB{
+			Id:    2,
+			State: memory.Blocked,
+		}
 		// add two blocked processes to the blocked queue
-		if err := s.addToBlockedQueue(testProcess); err != nil {
+		if err := s.addToBlockedQueue(firstBlockedProcess); err != nil {
 			t.Errorf("expected nil, found %v", err)
 		}
-		if err := s.addToBlockedQueue(processF); err != nil {
+		if err := s.addToBlockedQueue(secondBlockedProcess); err != nil {
 			t.Errorf("expected nil, found %v", err)
 		}
 
 		// unblock a process and check moving the process from blocked queue to ready queue.
-		if err := s.UnBlockProcess(testProcess.Id); err != nil {
+		if err := s.UnBlockProcess(firstBlockedProcess.Id); err != nil {
 			t.Errorf("expected nil, found %v", err)
 		}
 
-		if len(s.readyQueue) != 1 && !reflect.DeepEqual(s.readyQueue[0], testProcess) {
+		if len(s.readyQueue) != 1 && !reflect.DeepEqual(s.readyQueue[0], firstBlockedProcess) {
 			t.Errorf("expected 1, found %v", len(s.readyQueue))
-			t.Errorf("expected %v, found %v", testProcess, s.readyQueue[0])
+			t.Errorf("expected %v, found %v", firstBlockedProcess, s.readyQueue[0])
 		}
 
-		if len(s.blockedQueue) != 1 && !reflect.DeepEqual(s.blockedQueue[0], processE) {
+		if len(s.blockedQueue) != 1 && !reflect.DeepEqual(s.blockedQueue[0], secondBlockedProcess) {
 			t.Errorf("expected 1, found %v", len(s.blockedQueue))
-			t.Errorf("expected %v, found %v", processE, s.blockedQueue[0])
+			t.Errorf("expected %v, found %v", secondBlockedProcess, s.blockedQueue[0])
 		}
 	})
 }
@@ -187,8 +195,14 @@ func TestTerminateProcess(t *testing.T) {
 	t.Run("terminate not existing process", func(t *testing.T) {
 		s := NewScheduler()
 
-		s.AddToReadyQueue(processA)
-		err := s.TerminateProcess(1000)
+		readyProcess := &memory.PCB{
+			Id:    1,
+			State: memory.Ready,
+		}
+		notFoundId := 1000
+
+		s.AddToReadyQueue(readyProcess)
+		err := s.TerminateProcess(notFoundId)
 		if err != ErrProcessNotFound {
 			t.Errorf("expected %v, found %v", ErrProcessNotFound, err)
 		}
@@ -197,21 +211,30 @@ func TestTerminateProcess(t *testing.T) {
 	t.Run("terminate existing process", func(t *testing.T) {
 		s := NewScheduler()
 
+		firstReadyProcess := &memory.PCB{
+			Id:    1,
+			State: memory.Ready,
+		}
+		secondReadyProcess := &memory.PCB{
+			Id:    2,
+			State: memory.Ready,
+		}
+
 		// add two ready processes to the ready queue
-		if err := s.AddToReadyQueue(processA); err != nil {
+		if err := s.AddToReadyQueue(firstReadyProcess); err != nil {
 			t.Errorf("expected nil, found %v", err)
 		}
-		if err := s.AddToReadyQueue(processC); err != nil {
+		if err := s.AddToReadyQueue(secondReadyProcess); err != nil {
 			t.Errorf("expected nil, found %v", err)
 		}
 
 		// terminate a process and check removing the process from ready queue.
-		if err := s.TerminateProcess(processA.Id); err != nil {
+		if err := s.TerminateProcess(firstReadyProcess.Id); err != nil {
 			t.Errorf("expected nil, found %v", err)
 		}
-		if len(s.readyQueue) != 1 && !reflect.DeepEqual(s.readyQueue[0], processC) {
+		if len(s.readyQueue) != 1 && !reflect.DeepEqual(s.readyQueue[0], secondReadyProcess) {
 			t.Errorf("expected 1, found %v", len(s.readyQueue))
-			t.Errorf("expected %v, found %v", processC, s.blockedQueue[0])
+			t.Errorf("expected %v, found %v", secondReadyProcess, s.blockedQueue[0])
 
 		}
 	})
@@ -220,35 +243,52 @@ func TestTerminateProcess(t *testing.T) {
 func TestIncrementIterator(t *testing.T) {
 	s := NewScheduler()
 
-	if err := s.AddToReadyQueue(processA); err != nil {
+	firstReadyProcess := &memory.PCB{
+		Id:    1,
+		State: memory.Ready,
+	}
+	secondReadyProcess := &memory.PCB{
+		Id:    2,
+		State: memory.Ready,
+	}
+	thirdReadyProcess := &memory.PCB{
+		Id:    3,
+		State: memory.Ready,
+	}
+
+	if err := s.AddToReadyQueue(firstReadyProcess); err != nil {
 		t.Errorf("expected nil, found %v", err)
 	}
-	if err := s.AddToReadyQueue(processC); err != nil {
+	if err := s.AddToReadyQueue(secondReadyProcess); err != nil {
 		t.Errorf("expected nil, found %v", err)
 	}
-	if err := s.AddToReadyQueue(processD); err != nil {
+	if err := s.AddToReadyQueue(thirdReadyProcess); err != nil {
 		t.Errorf("expected nil, found %v", err)
 	}
 
-	if process, _ := s.GetNextReadyProcess(); !reflect.DeepEqual(process, processA) {
-		t.Errorf("expected %v, found %v", processA, process)
+	if process, _ := s.GetNextReadyProcess(); !reflect.DeepEqual(process, firstReadyProcess) {
+		t.Errorf("expected %v, found %v", firstReadyProcess, process)
 	}
-	if process, _ := s.GetNextReadyProcess(); !reflect.DeepEqual(process, processC) {
-		t.Errorf("expected %v, found %v", processC, process)
+	if process, _ := s.GetNextReadyProcess(); !reflect.DeepEqual(process, secondReadyProcess) {
+		t.Errorf("expected %v, found %v", secondReadyProcess, process)
 	}
-	if process, _ := s.GetNextReadyProcess(); !reflect.DeepEqual(process, processD) {
-		t.Errorf("expected %v, found %v", processD, process)
+	if process, _ := s.GetNextReadyProcess(); !reflect.DeepEqual(process, thirdReadyProcess) {
+		t.Errorf("expected %v, found %v", thirdReadyProcess, process)
 	}
-	if process, _ := s.GetNextReadyProcess(); !reflect.DeepEqual(process, processA) {
-		t.Errorf("expected %v, found %v", processA, process)
+	if process, _ := s.GetNextReadyProcess(); !reflect.DeepEqual(process, firstReadyProcess) {
+		t.Errorf("expected %v, found %v", firstReadyProcess, process)
 	}
 }
 
 func TestAddToBlockedQueue(t *testing.T) {
 
 	t.Run("add ready process to blocked queue, should return error", func(t *testing.T) {
+		readyProcess := &memory.PCB{
+			Id:    2,
+			State: memory.Ready,
+		}
 		s := NewScheduler()
-		err := s.addToBlockedQueue(processA)
+		err := s.addToBlockedQueue(readyProcess)
 		if err != ErrProcessNotBlocked {
 			t.Errorf("expected %v, found %v", ErrProcessNotBlocked, err)
 		}
@@ -256,13 +296,16 @@ func TestAddToBlockedQueue(t *testing.T) {
 
 	t.Run("add blocked process to blocked queue", func(t *testing.T) {
 		s := NewScheduler()
-
-		if err := s.addToBlockedQueue(processB); err != nil {
+		blockedProcess := &memory.PCB{
+			Id:    2,
+			State: memory.Blocked,
+		}
+		if err := s.addToBlockedQueue(blockedProcess); err != nil {
 			t.Errorf("expected nil, found %v", err)
 		}
-		if len(s.blockedQueue) != 1 && !reflect.DeepEqual(s.blockedQueue[0], processB) {
+		if len(s.blockedQueue) != 1 && !reflect.DeepEqual(s.blockedQueue[0], blockedProcess) {
 			t.Errorf("expected 1, found %v", len(s.blockedQueue))
-			t.Errorf("expected %v, found %v", processB, s.blockedQueue[0])
+			t.Errorf("expected %v, found %v", blockedProcess, s.blockedQueue[0])
 		}
 	})
 }
@@ -270,19 +313,32 @@ func TestAddToBlockedQueue(t *testing.T) {
 func TestRemoveFromBlockedQueue(t *testing.T) {
 	s := NewScheduler()
 
+	firstBlockedProcess := &memory.PCB{
+		Id:    1,
+		State: memory.Blocked,
+	}
+	secondBlockedProcess := &memory.PCB{
+		Id:    2,
+		State: memory.Blocked,
+	}
+	thirdBlockedProcess := &memory.PCB{
+		Id:    3,
+		State: memory.Blocked,
+	}
+
 	// add three blocked processes to the blocked queue
-	if err := s.addToBlockedQueue(processB); err != nil {
+	if err := s.addToBlockedQueue(firstBlockedProcess); err != nil {
 		t.Errorf("expected nil, found %v", err)
 	}
-	if err := s.addToBlockedQueue(processF); err != nil {
+	if err := s.addToBlockedQueue(secondBlockedProcess); err != nil {
 		t.Errorf("expected nil, found %v", err)
 	}
-	if err := s.addToBlockedQueue(processG); err != nil {
+	if err := s.addToBlockedQueue(thirdBlockedProcess); err != nil {
 		t.Errorf("expected nil, found %v", err)
 	}
 
-	if found := s.removeFromBlockedQueue(1); !reflect.DeepEqual(found, processF) {
-		t.Errorf("expected %v, found %v", processF, found)
+	if found := s.removeFromBlockedQueue(1); !reflect.DeepEqual(found, secondBlockedProcess) {
+		t.Errorf("expected %v, found %v", secondBlockedProcess, found)
 	}
 	if len(s.blockedQueue) != 2 {
 		t.Errorf("expected 2, found %v", len(s.blockedQueue))
@@ -290,127 +346,124 @@ func TestRemoveFromBlockedQueue(t *testing.T) {
 }
 
 func TestRemoveFromReadyQueue(t *testing.T) {
+	s := NewScheduler()
+	firstReadyProcess := &memory.PCB{
+		Id:    1,
+		State: memory.Ready,
+	}
+	secondReadyProcess := &memory.PCB{
+		Id:    2,
+		State: memory.Ready,
+	}
+	thirdReadyProcess := &memory.PCB{
+		Id:    3,
+		State: memory.Ready,
+	}
+
+	s.AddToReadyQueue(firstReadyProcess)
+	s.AddToReadyQueue(secondReadyProcess)
+	s.AddToReadyQueue(thirdReadyProcess)
+
+	s.removeFromReadyQueue(1)
+
+	if !reflect.DeepEqual(firstReadyProcess, s.readyQueue[0]) {
+		t.Errorf("expected %v, found %v", firstReadyProcess, s.readyQueue[0])
+	}
+	if !reflect.DeepEqual(thirdReadyProcess, s.readyQueue[1]) {
+		t.Errorf("expected %v, found %v", thirdReadyProcess, s.readyQueue[1])
+	}
+
+}
+
+func TestNormalizeIterator(t *testing.T) {
 
 	t.Run("iterator is less than deleted process index", func(t *testing.T) {
 		s := NewScheduler()
 
+		readyProcess := &memory.PCB{
+			Id:    1,
+			State: memory.Ready,
+		}
+
 		// add four ready processes to the ready queue
-		s.AddToReadyQueue(processA)
-		s.AddToReadyQueue(processC)
-		s.AddToReadyQueue(processD)
-		s.AddToReadyQueue(processE)
+		s.AddToReadyQueue(readyProcess)
+		s.AddToReadyQueue(readyProcess)
+		s.AddToReadyQueue(readyProcess)
+		s.AddToReadyQueue(readyProcess)
 
-		// iterator is zero and index is two, so should not change
-		if process := s.removeFromReadyQueue(2); !reflect.DeepEqual(process, processD) {
-			t.Errorf("expected %v, found %v", processD, process)
-		}
+		// iterator is zero and index deleted is two, so should not change
+		s.readyProcessIterator = 0
+		s.normalizeIterator(2)
 
-		if expected := []*memory.PCB{processA, processC, processE}; !reflect.DeepEqual([]*memory.PCB(s.readyQueue), expected) {
-			t.Errorf("expected %v, found %v", expected, s.readyQueue)
-		}
-
-		if s.ReadyProcessIterator != 0 {
-			t.Errorf("expected 1, found %v", s.ReadyProcessIterator)
+		if s.readyProcessIterator != 0 {
+			t.Errorf("expected 0, found %v", s.readyProcessIterator)
 		}
 	})
 
 	t.Run("iterator is equal to index,not last index", func(t *testing.T) {
 		s := NewScheduler()
 
+		readyProcess := &memory.PCB{
+			Id:    1,
+			State: memory.Ready,
+		}
+
 		// add four ready processes to the ready queue
-		s.AddToReadyQueue(processA)
-		s.AddToReadyQueue(processC)
-		s.AddToReadyQueue(processD)
-		s.AddToReadyQueue(processE)
+		s.AddToReadyQueue(readyProcess)
+		s.AddToReadyQueue(readyProcess)
+		s.AddToReadyQueue(readyProcess)
+		s.AddToReadyQueue(readyProcess)
 
-		// iterator is one and index is one, so should not change
-		if process, _ := s.GetNextReadyProcess(); process != processA {
-			t.Errorf("expected %v, found %v", processA, process)
-		}
-		if process := s.removeFromReadyQueue(1); !reflect.DeepEqual(process, processC) {
-			t.Errorf("expected %v, found %v", processC, process)
-		}
-
-		if expected := []*memory.PCB{processA, processD, processE}; !reflect.DeepEqual([]*memory.PCB(s.readyQueue), expected) {
-			t.Errorf("expected %v, found %v", expected, s.readyQueue)
-		}
-
-		if s.ReadyProcessIterator != 1 {
-			t.Errorf("expected 1, found %v", s.ReadyProcessIterator)
+		// iterator is one and index is one and it's not last index, so should not change
+		s.readyProcessIterator = 1
+		s.normalizeIterator(1)
+		if s.readyProcessIterator != 1 {
+			t.Errorf("expected 1, found %v", s.readyProcessIterator)
 		}
 	})
 
 	t.Run("iterator is equal to index, last index", func(t *testing.T) {
 		s := NewScheduler()
 
+		readyProcess := &memory.PCB{
+			Id:    1,
+			State: memory.Ready,
+		}
+
 		// add four ready processes to the ready queue
-		s.AddToReadyQueue(processA)
-		s.AddToReadyQueue(processC)
-		s.AddToReadyQueue(processD)
-		s.AddToReadyQueue(processE)
+		s.AddToReadyQueue(readyProcess)
+		s.AddToReadyQueue(readyProcess)
+		s.AddToReadyQueue(readyProcess)
+		s.AddToReadyQueue(readyProcess)
 
-		// iterator is three and index is three, so should not change
-		if process, _ := s.GetNextReadyProcess(); process != processA {
-			t.Errorf("expected %v, found %v", processA, process)
-		}
-		if process, _ := s.GetNextReadyProcess(); process != processC {
-			t.Errorf("expected %v, found %v", processC, process)
-		}
-		if process, _ := s.GetNextReadyProcess(); process != processD {
-			t.Errorf("expected %v, found %v", processD, process)
-		}
-
-		if s.ReadyProcessIterator != 3 {
-			t.Errorf("expected 3, found %v", s.ReadyProcessIterator)
-		}
-
-		if process := s.removeFromReadyQueue(3); !reflect.DeepEqual(process, processE) {
-			t.Errorf("expected %v, found %v", processE, process)
-		}
-
-		if expected := []*memory.PCB{processA, processC, processD}; !reflect.DeepEqual([]*memory.PCB(s.readyQueue), expected) {
-			t.Errorf("expected %v, found %v", expected, s.readyQueue)
-		}
-
-		if s.ReadyProcessIterator != 0 {
-			t.Errorf("expected 0, found %v", s.ReadyProcessIterator)
+		// iterator is three and index is three, so should become 0
+		s.readyProcessIterator = 3
+		s.normalizeIterator(3)
+		if s.readyProcessIterator != 0 {
+			t.Errorf("expected 0, found %v", s.readyProcessIterator)
 		}
 	})
 
 	t.Run("iterator is greater than deleted process index", func(t *testing.T) {
 		s := NewScheduler()
 
+		readyProcess := &memory.PCB{
+			Id:    1,
+			State: memory.Ready,
+		}
+
 		// add four ready processes to the ready queue
-		s.AddToReadyQueue(processA)
-		s.AddToReadyQueue(processC)
-		s.AddToReadyQueue(processD)
-		s.AddToReadyQueue(processE)
+		s.AddToReadyQueue(readyProcess)
+		s.AddToReadyQueue(readyProcess)
+		s.AddToReadyQueue(readyProcess)
+		s.AddToReadyQueue(readyProcess)
 
 		// iterator is three and index is one, so should subtract one from the iterator
-		if process, _ := s.GetNextReadyProcess(); process != processA {
-			t.Errorf("expected %v, found %v", processA, process)
-		}
-		if process, _ := s.GetNextReadyProcess(); process != processC {
-			t.Errorf("expected %v, found %v", processC, process)
-		}
-		if process, _ := s.GetNextReadyProcess(); process != processD {
-			t.Errorf("expected %v, found %v", processD, process)
+		s.readyProcessIterator = 3
+		s.normalizeIterator(1)
+		if s.readyProcessIterator != 2 {
+			t.Errorf("expected 2, found %v", s.readyProcessIterator)
 		}
 
-		if s.ReadyProcessIterator != 3 {
-			t.Errorf("expected 3, found %v", s.ReadyProcessIterator)
-		}
-
-		if process := s.removeFromReadyQueue(1); !reflect.DeepEqual(process, processC) {
-			t.Errorf("expected %v, found %v", processC, process)
-		}
-
-		if expected := []*memory.PCB{processA, processD, processE}; !reflect.DeepEqual([]*memory.PCB(s.readyQueue), expected) {
-			t.Errorf("expected %v, found %v", expected, s.readyQueue)
-		}
-
-		if s.ReadyProcessIterator != 2 {
-			t.Errorf("expected 2, found %v", s.ReadyProcessIterator)
-		}
 	})
 }
