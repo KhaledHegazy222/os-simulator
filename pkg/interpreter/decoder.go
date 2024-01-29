@@ -17,10 +17,10 @@ type symbolTable map[string]int
 type processId int
 
 var (
-	// errType is a common error for a type error during value conversion.
-	errType = errors.New("type error")
-	// errUndefinedSymbol is a common error for accessing an undefined symbol in the symbol table.
-	errUndefinedSymbol = errors.New("undefined symbol")
+	// ErrType is a common error for a type error during value conversion.
+	ErrType = errors.New("type error")
+	// ErrUndefinedSymbol is a common error for accessing an undefined symbol in the symbol table.
+	ErrUndefinedSymbol = errors.New("undefined symbol")
 )
 
 // getSymbolTable returns the symbol table for the given process, initializing it if not present.
@@ -48,7 +48,7 @@ func (i *Interpreter) decodeArgs(instruction *Instruction, process *memory.PCB) 
 		if i.isSymbol(arg) {
 			address, isPresent := symTable[arg]
 			if !isPresent {
-				return errUndefinedSymbol
+				return ErrUndefinedSymbol
 			}
 			// get data of address of data
 			data, err := process.GetDataWord(address)
@@ -74,7 +74,7 @@ func (i *Interpreter) getValueType(token string, reader io.Reader) (value string
 	} else if _, conversionErr := strconv.Atoi(token); conversionErr == nil {
 		return token, INTEGER, nil
 	} else {
-		return "", ANY, errType
+		return "", ANY, ErrType
 	}
 }
 

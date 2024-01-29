@@ -38,7 +38,7 @@ func TestGetValueType(t *testing.T) {
 	}
 	for testName, test := range tests {
 		t.Run(testName, func(t *testing.T) {
-			i := NewInterpreter(memory.MemoryManager{})
+			i := NewInterpreter(&memory.MemoryManager{})
 
 			reader := bufio.NewReader(strings.NewReader(test.userInput))
 			actualValue, actualType, err := i.getValueType(test.token, reader)
@@ -68,7 +68,7 @@ func TestIsSymbol(t *testing.T) {
 	}
 	for testName, test := range tests {
 		t.Run(testName, func(t *testing.T) {
-			i := NewInterpreter(memory.MemoryManager{})
+			i := NewInterpreter(&memory.MemoryManager{})
 			actual := i.isSymbol(test.token)
 			if test.expected != actual {
 				t.Fatalf("Unexpected result expected %t found %t\n", test.expected, actual)
@@ -102,7 +102,7 @@ func TestAllocateIfNotDefined(t *testing.T) {
 	}
 	for testName, test := range tests {
 		t.Run(testName, func(t *testing.T) {
-			i := NewInterpreter(memory.MemoryManager{})
+			i := NewInterpreter(&memory.MemoryManager{})
 			symbol := test.symbol
 			symTable := test.inputSymbolTable
 			i.allocateIfNotDefined(symbol, symTable)

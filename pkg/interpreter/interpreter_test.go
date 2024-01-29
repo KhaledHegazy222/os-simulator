@@ -8,7 +8,7 @@ import (
 
 func TestMatchCommand(t *testing.T) {
 	t.Run("Test Match Existing Command", func(t *testing.T) {
-		i := NewInterpreter(memory.MemoryManager{})
+		i := NewInterpreter(&memory.MemoryManager{})
 		expected := availableCommands["assign"]
 		actual, err := i.matchCommand(Instruction{Command: "assign", Args: []string{"x", "11"}})
 
@@ -21,12 +21,12 @@ func TestMatchCommand(t *testing.T) {
 		}
 	})
 	t.Run("Test Match Existing Command With Insufficient Args Number", func(t *testing.T) {
-		i := NewInterpreter(memory.MemoryManager{})
+		i := NewInterpreter(&memory.MemoryManager{})
 		expected := allowedCommand{}
 		actual, err := i.matchCommand(Instruction{Command: "assign", Args: []string{"x"}})
 
-		if err != errInsufficientArguments {
-			t.Fatalf("Expected %q, Found %q\n", errInsufficientArguments, err)
+		if err != ErrInsufficientArguments {
+			t.Fatalf("Expected %q, Found %q\n", ErrInsufficientArguments, err)
 		}
 
 		if expected.command != actual.command {
@@ -35,12 +35,12 @@ func TestMatchCommand(t *testing.T) {
 
 	})
 	t.Run("Test Invalid Command", func(t *testing.T) {
-		i := NewInterpreter(memory.MemoryManager{})
+		i := NewInterpreter(&memory.MemoryManager{})
 		expected := allowedCommand{}
 		actual, err := i.matchCommand(Instruction{Command: "RandomCommand", Args: []string{"x"}})
 
-		if err != errInvalidCommand {
-			t.Fatalf("Expected %q, Found %q\n", errInsufficientArguments, err)
+		if err != ErrInvalidCommand {
+			t.Fatalf("Expected %q, Found %q\n", ErrInsufficientArguments, err)
 		}
 
 		if expected.command != actual.command {
@@ -83,8 +83,8 @@ func TestMatchTypes(t *testing.T) {
 		}
 
 		err := i.matchTypes(instruction, command)
-		if err != errInvalidArgumentType {
-			t.Errorf("Error: expected %v, got %v", errInvalidArgumentType, err)
+		if err != ErrInvalidArgumentType {
+			t.Errorf("Error: expected %v, got %v", ErrInvalidArgumentType, err)
 		}
 
 	})

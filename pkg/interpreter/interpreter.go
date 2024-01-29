@@ -23,21 +23,21 @@ type Instruction struct {
 
 var (
 	// Common error for a blocked process.
-	errBlockedProcess = errors.New("the process is currently blocked and can't execute")
+	ErrBlockedProcess = errors.New("the process is currently blocked and can't execute")
 	// Common error for an invalid command.
-	errInvalidCommand = errors.New("invalid command")
+	ErrInvalidCommand = errors.New("invalid command")
 	// Common error for insufficient arguments for a command.
-	errInsufficientArguments = errors.New("insufficient arguments for the command")
+	ErrInsufficientArguments = errors.New("insufficient arguments for the command")
 	// Common error for an invalid argument type.
-	errInvalidArgumentType = errors.New("invalid argument type")
+	ErrInvalidArgumentType = errors.New("invalid argument type")
 	// Common error for a runtime error during instruction execution.
-	errRunTimeError = errors.New("runtime error")
+	ErrRunTimeError = errors.New("runtime error")
 )
 
 // NewInterpreter creates a new Interpreter instance with the provided memory manager.
-func NewInterpreter(memoryManager memory.MemoryManager) Interpreter {
+func NewInterpreter(memoryManager *memory.MemoryManager) Interpreter {
 	return Interpreter{
-		memory:               &memoryManager,
+		memory:               memoryManager,
 		processToSymbolTable: map[processId]symbolTable{},
 	}
 }
@@ -46,7 +46,7 @@ func NewInterpreter(memoryManager memory.MemoryManager) Interpreter {
 func (i *Interpreter) Execute(process *memory.PCB) error {
 	// Return if Blocked
 	if process.State == memory.Blocked {
-		return errBlockedProcess
+		return ErrBlockedProcess
 	}
 	// Get the next Instruction
 	nextLine, err := process.GetNextInstruction()
@@ -64,13 +64,11 @@ func (i *Interpreter) Execute(process *memory.PCB) error {
 	}
 
 	// Decode Instruction arguments
-	err = i.decodeArgs(&instruction, process)
-	if err != nil {
+	if err = i.decodeArgs(&instruction, process); err != nil {
 		return err
 	}
 
-	err = i.matchTypes(&instruction, command)
-	if err != nil {
+	if err = i.matchTypes(&instruction, command); err != nil {
 		return err
 	}
 
@@ -79,7 +77,7 @@ func (i *Interpreter) Execute(process *memory.PCB) error {
 	if status == SUCCESS {
 		process.IncrementPC()
 	} else {
-		return errRunTimeError
+		return ErrRunTimeError
 	}
 
 	return nil
@@ -89,11 +87,11 @@ func (i *Interpreter) Execute(process *memory.PCB) error {
 func (i *Interpreter) matchCommand(instruction Instruction) (allowedCommand, error) {
 	matchedCommand, isPresent := availableCommands[instruction.Command]
 	if !isPresent {
-		return allowedCommand{}, errInvalidCommand
+		return allowedCommand{}, ErrInvalidCommand
 	}
 
 	if len(matchedCommand.parameters) != len(instruction.Args) {
-		return allowedCommand{}, errInsufficientArguments
+		return allowedCommand{}, ErrInsufficientArguments
 	}
 
 	return matchedCommand, nil
@@ -103,13 +101,12 @@ func (i *Interpreter) matchCommand(instruction Instruction) (allowedCommand, err
 func (i *Interpreter) matchTypes(instruction *Instruction, command allowedCommand) error {
 	for index, arg := range instruction.Args {
 		value, valueType, err := i.getValueType(arg, os.Stdin)
-		print(value)
 		if err != nil {
 			return err
 		}
 		instruction.Args[index] = value
 		if !i.typeCheck(valueType, command.parameters[index]) {
-			return errInvalidArgumentType
+			return ErrInvalidArgumentType
 		}
 	}
 	return nil
