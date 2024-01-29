@@ -27,18 +27,16 @@ var (
 	ErrUndefinedSymbol = errors.New("undefined symbol")
 )
 
-// getSymbolTable returns the symbol table for the given process, initializing it if not present.
 func (d *decoderManager) getSymbolTable(process *memory.PCB) symbolTable {
 	// if not executed before init Process
 	_, isPresent := d.processToSymbolTable[processId(process.Id)]
 	if !isPresent {
 		d.processToSymbolTable[processId(process.Id)] = symbolTable{}
 	}
-	symTable, _ := d.processToSymbolTable[processId(process.Id)]
+	symTable := d.processToSymbolTable[processId(process.Id)]
 	return symTable
 }
 
-// decodeArgs decodes and updates the arguments in the instruction based on the symbol table.
 func (d *decoderManager) decodeArgs(instruction *Instruction, process *memory.PCB) error {
 	symTable := d.getSymbolTable(process)
 	if instruction.Command == "assign" {
@@ -66,7 +64,6 @@ func (d *decoderManager) decodeArgs(instruction *Instruction, process *memory.PC
 	return nil
 }
 
-// getValueType returns the value and type of a token (argument).
 func (d *decoderManager) getValueType(token string, reader io.Reader) (value string, valueType parameterType, err error) {
 	if len(token) > 2 && strings.HasPrefix(token, "\"") && strings.HasSuffix(token, "\"") {
 		croppedToken := token[1 : len(token)-1]
@@ -82,7 +79,6 @@ func (d *decoderManager) getValueType(token string, reader io.Reader) (value str
 	}
 }
 
-// isSymbol checks if the token is a symbol (variable) rather than a literal value.
 func (d *decoderManager) isSymbol(token string) bool {
 	if token == "input" {
 		return false
@@ -96,7 +92,6 @@ func (d *decoderManager) isSymbol(token string) bool {
 
 }
 
-// allocateIfNotDefined allocates a new address for a symbol if it is not already defined.
 func (d *decoderManager) allocateIfNotDefined(symbol string, symTable symbolTable) {
 	_, isPresent := symTable[symbol]
 	if !isPresent {

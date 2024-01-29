@@ -89,7 +89,6 @@ func (i *Interpreter) Execute(process *memory.PCB) error {
 	return nil
 }
 
-// matchCommand matches the instruction command with the available commands.
 func (i *Interpreter) matchCommand(instruction Instruction) (allowedCommand, error) {
 	matchedCommand, isPresent := availableCommands[instruction.Command]
 	if !isPresent {
@@ -103,7 +102,6 @@ func (i *Interpreter) matchCommand(instruction Instruction) (allowedCommand, err
 	return matchedCommand, nil
 }
 
-// matchTypes checks if the arguments of the instruction match the expected types.
 func (i *Interpreter) matchTypes(instruction *Instruction, command allowedCommand) error {
 	for index, arg := range instruction.Args {
 		value, valueType, err := i.decoder.getValueType(arg, os.Stdin)
@@ -118,7 +116,6 @@ func (i *Interpreter) matchTypes(instruction *Instruction, command allowedComman
 	return nil
 }
 
-// typeCheck checks if the provided token type matches the expected type.
 func (i *Interpreter) typeCheck(tokenType parameterType, checkedType parameterType) bool {
 	if checkedType == ANY {
 		return true

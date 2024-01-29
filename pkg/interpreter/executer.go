@@ -7,10 +7,8 @@ import (
 	"github.com/KhaledHegazy222/os-simulator/pkg/systemcalls"
 )
 
-// parameterType represents the type of a command parameter.
 type parameterType int8
 
-// statusCode represents the status code returned after executing a command.
 type statusCode int8
 
 const (
@@ -29,14 +27,12 @@ const (
 	ERROR statusCode = 1
 )
 
-// allowedCommand represents a command along with its expected parameters and execution function.
 type allowedCommand struct {
 	command    string
 	parameters []parameterType
 	run        func(instruction Instruction, process *memory.PCB) statusCode
 }
 
-// availableCommands is a map of command names to their corresponding allowedCommand structure.
 var availableCommands = map[string]allowedCommand{
 	"assign":      {command: "assign", parameters: []parameterType{INTEGER, ANY}, run: runAssign},
 	"print":       {command: "print", parameters: []parameterType{ANY}, run: runPrint},
@@ -47,7 +43,6 @@ var availableCommands = map[string]allowedCommand{
 	"printFromTo": {command: "printFromTo", parameters: []parameterType{INTEGER, INTEGER}, run: runPrintFromTo},
 }
 
-// runAssign executes the "assign" command, setting the value of a variable in the process's memory.
 func runAssign(instruction Instruction, process *memory.PCB) statusCode {
 	destinationAddress, err := strconv.Atoi(instruction.Args[0])
 	if err != nil {
@@ -61,7 +56,6 @@ func runAssign(instruction Instruction, process *memory.PCB) statusCode {
 	return SUCCESS
 }
 
-// runPrint executes the "print" command, printing the specified data to standard output.
 func runPrint(instruction Instruction, process *memory.PCB) statusCode {
 	os := systemcalls.NewOS()
 	data := instruction.Args[0]
@@ -69,17 +63,14 @@ func runPrint(instruction Instruction, process *memory.PCB) statusCode {
 	return SUCCESS
 }
 
-// runSemWait executes the "semWait" command, representing a semaphore wait operation.
 func runSemWait(instruction Instruction, process *memory.PCB) statusCode {
 	return SUCCESS
 }
 
-// runSemSignal executes the "semSignal" command, representing a semaphore signal operation.
 func runSemSignal(instruction Instruction, process *memory.PCB) statusCode {
 	return SUCCESS
 }
 
-// runWriteFile executes the "writeFile" command, writing data to a specified file.
 func runWriteFile(instruction Instruction, process *memory.PCB) statusCode {
 	os := systemcalls.NewOS()
 	path, data := instruction.Args[0], instruction.Args[1]
@@ -91,7 +82,6 @@ func runWriteFile(instruction Instruction, process *memory.PCB) statusCode {
 	return SUCCESS
 }
 
-// runReadFile executes the "readFile" command, reading data from a specified file.
 func runReadFile(instruction Instruction, process *memory.PCB) statusCode {
 	os := systemcalls.NewOS()
 	path := instruction.Args[0]
@@ -107,7 +97,6 @@ func runReadFile(instruction Instruction, process *memory.PCB) statusCode {
 	return SUCCESS
 }
 
-// runPrintFromTo executes the "printFromTo" command, printing a range of values.
 func runPrintFromTo(instruction Instruction, process *memory.PCB) statusCode {
 	os := systemcalls.NewOS()
 	start, err := strconv.Atoi(instruction.Args[0])
