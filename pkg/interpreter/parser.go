@@ -2,8 +2,10 @@ package interpreter
 
 import "strings"
 
+type parserManager struct{}
+
 // parse parses a given line of code and returns an Instruction.
-func (i *Interpreter) parse(line string) Instruction {
+func (p *parserManager) parse(line string) Instruction {
 	tokens := strings.Split(line, " ")
 	command := tokens[0]
 	args := make([]string, 0)

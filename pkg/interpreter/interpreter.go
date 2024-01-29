@@ -13,7 +13,8 @@ import (
 type Interpreter struct {
 	memory               *memory.MemoryManager
 	processToSymbolTable map[processId]symbolTable
-	decoder              decoderManager
+	decoder              *decoderManager
+	parser               *parserManager
 }
 
 // Instruction represents a single instruction with a command and its arguments.
@@ -38,11 +39,13 @@ var (
 // NewInterpreter creates a new Interpreter instance with the provided memory manager.
 func NewInterpreter(memoryManager *memory.MemoryManager) Interpreter {
 	processToSymbolTable := map[processId]symbolTable{}
-	decoder := decoderManager{processToSymbolTable: processToSymbolTable}
+	decoder := &decoderManager{processToSymbolTable: processToSymbolTable}
+	parser := &parserManager{}
 	return Interpreter{
 		memory:               memoryManager,
 		processToSymbolTable: processToSymbolTable,
 		decoder:              decoder,
+		parser:               parser,
 	}
 }
 
@@ -59,7 +62,7 @@ func (i *Interpreter) Execute(process *memory.PCB) error {
 	}
 
 	// Parse Instruction
-	instruction := i.parse(nextLine)
+	instruction := i.parser.parse(nextLine)
 
 	// Find Matched Command
 	command, err := i.matchCommand(instruction)
@@ -78,12 +81,11 @@ func (i *Interpreter) Execute(process *memory.PCB) error {
 
 	// Execute Instruction
 	status := command.run(instruction, process)
-	if status == SUCCESS {
-		process.IncrementPC()
-	} else {
+	if status != SUCCESS {
 		return ErrRunTimeError
 	}
 
+	process.IncrementPC()
 	return nil
 }
 

@@ -11,7 +11,7 @@ func TestParser(t *testing.T) {
 
 	t.Run("Testing Single Command no args", func(t *testing.T) {
 		i := NewInterpreter(&memory.MemoryManager{})
-		actual := i.parse("test")
+		actual := i.parser.parse("test")
 		expected := Instruction{
 			Command: "test", Args: []string{},
 		}
@@ -24,7 +24,7 @@ func TestParser(t *testing.T) {
 
 	t.Run("Testing Multi Command multi args", func(t *testing.T) {
 		i := NewInterpreter(&memory.MemoryManager{})
-		actual := i.parse("assign x 1")
+		actual := i.parser.parse("assign x 1")
 		expected := Instruction{
 			Command: "assign", Args: []string{"x", "1"},
 		}
@@ -37,7 +37,7 @@ func TestParser(t *testing.T) {
 
 	t.Run("Testing String Literal Args with no spaces", func(t *testing.T) {
 		i := NewInterpreter(&memory.MemoryManager{})
-		actual := i.parse("assign x \"string_content\"")
+		actual := i.parser.parse("assign x \"string_content\"")
 		expected := Instruction{
 			Command: "assign", Args: []string{"x", "\"string_content\""},
 		}
@@ -50,7 +50,7 @@ func TestParser(t *testing.T) {
 
 	t.Run("Testing String Literal Args with spaces", func(t *testing.T) {
 		i := NewInterpreter(&memory.MemoryManager{})
-		actual := i.parse("assign x \"string content test\"")
+		actual := i.parser.parse("assign x \"string content test\"")
 		expected := Instruction{
 			Command: "assign", Args: []string{"x", "\"string content test\""},
 		}
