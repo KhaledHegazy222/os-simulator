@@ -13,6 +13,7 @@ import (
 type Interpreter struct {
 	memory               *memory.MemoryManager
 	processToSymbolTable map[processId]symbolTable
+	decoder              decoderManager
 }
 
 // Instruction represents a single instruction with a command and its arguments.
@@ -36,9 +37,12 @@ var (
 
 // NewInterpreter creates a new Interpreter instance with the provided memory manager.
 func NewInterpreter(memoryManager *memory.MemoryManager) Interpreter {
+	processToSymbolTable := map[processId]symbolTable{}
+	decoder := decoderManager{processToSymbolTable: processToSymbolTable}
 	return Interpreter{
 		memory:               memoryManager,
-		processToSymbolTable: map[processId]symbolTable{},
+		processToSymbolTable: processToSymbolTable,
+		decoder:              decoder,
 	}
 }
 
@@ -64,7 +68,7 @@ func (i *Interpreter) Execute(process *memory.PCB) error {
 	}
 
 	// Decode Instruction arguments
-	if err = i.decodeArgs(&instruction, process); err != nil {
+	if err = i.decoder.decodeArgs(&instruction, process); err != nil {
 		return err
 	}
 
@@ -100,7 +104,7 @@ func (i *Interpreter) matchCommand(instruction Instruction) (allowedCommand, err
 // matchTypes checks if the arguments of the instruction match the expected types.
 func (i *Interpreter) matchTypes(instruction *Instruction, command allowedCommand) error {
 	for index, arg := range instruction.Args {
-		value, valueType, err := i.getValueType(arg, os.Stdin)
+		value, valueType, err := i.decoder.getValueType(arg, os.Stdin)
 		if err != nil {
 			return err
 		}

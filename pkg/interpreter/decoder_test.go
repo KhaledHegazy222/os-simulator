@@ -41,7 +41,7 @@ func TestGetValueType(t *testing.T) {
 			i := NewInterpreter(&memory.MemoryManager{})
 
 			reader := bufio.NewReader(strings.NewReader(test.userInput))
-			actualValue, actualType, err := i.getValueType(test.token, reader)
+			actualValue, actualType, err := i.decoder.getValueType(test.token, reader)
 			if err != test.expectedErr {
 				t.Fatalf("Unexpected Error Mismatch expected %q found %q\n", test.expectedErr, err)
 			}
@@ -69,7 +69,7 @@ func TestIsSymbol(t *testing.T) {
 	for testName, test := range tests {
 		t.Run(testName, func(t *testing.T) {
 			i := NewInterpreter(&memory.MemoryManager{})
-			actual := i.isSymbol(test.token)
+			actual := i.decoder.isSymbol(test.token)
 			if test.expected != actual {
 				t.Fatalf("Unexpected result expected %t found %t\n", test.expected, actual)
 			}
@@ -105,7 +105,7 @@ func TestAllocateIfNotDefined(t *testing.T) {
 			i := NewInterpreter(&memory.MemoryManager{})
 			symbol := test.symbol
 			symTable := test.inputSymbolTable
-			i.allocateIfNotDefined(symbol, symTable)
+			i.decoder.allocateIfNotDefined(symbol, symTable)
 			if !reflect.DeepEqual(symTable, test.outputSymbolTable) {
 				t.Fatalf("Unexpected Mismatch expected %q found %q\n", test.outputSymbolTable, symTable)
 			}

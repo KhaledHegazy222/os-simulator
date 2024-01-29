@@ -16,6 +16,10 @@ type symbolTable map[string]int
 // processId is a type representing the unique identifier for a process.
 type processId int
 
+type decoderManager struct {
+	processToSymbolTable map[processId]symbolTable
+}
+
 var (
 	// ErrType is a common error for a type error during value conversion.
 	ErrType = errors.New("type error")
@@ -24,28 +28,28 @@ var (
 )
 
 // getSymbolTable returns the symbol table for the given process, initializing it if not present.
-func (i *Interpreter) getSymbolTable(process *memory.PCB) symbolTable {
+func (d *decoderManager) getSymbolTable(process *memory.PCB) symbolTable {
 	// if not executed before init Process
-	_, isPresent := i.processToSymbolTable[processId(process.Id)]
+	_, isPresent := d.processToSymbolTable[processId(process.Id)]
 	if !isPresent {
-		i.processToSymbolTable[processId(process.Id)] = symbolTable{}
+		d.processToSymbolTable[processId(process.Id)] = symbolTable{}
 	}
-	symTable, _ := i.processToSymbolTable[processId(process.Id)]
+	symTable, _ := d.processToSymbolTable[processId(process.Id)]
 	return symTable
 }
 
 // decodeArgs decodes and updates the arguments in the instruction based on the symbol table.
-func (i *Interpreter) decodeArgs(instruction *Instruction, process *memory.PCB) error {
-	symTable := i.getSymbolTable(process)
+func (d *decoderManager) decodeArgs(instruction *Instruction, process *memory.PCB) error {
+	symTable := d.getSymbolTable(process)
 	if instruction.Command == "assign" {
 		// Allocate the variable if not defined
-		i.allocateIfNotDefined(instruction.Args[0], symTable)
+		d.allocateIfNotDefined(instruction.Args[0], symTable)
 		// Replace the destination operand with its address
 		instruction.Args[0] = strconv.Itoa(symTable[instruction.Args[0]])
 	}
 	for index, arg := range instruction.Args {
 
-		if i.isSymbol(arg) {
+		if d.isSymbol(arg) {
 			address, isPresent := symTable[arg]
 			if !isPresent {
 				return ErrUndefinedSymbol
@@ -63,7 +67,7 @@ func (i *Interpreter) decodeArgs(instruction *Instruction, process *memory.PCB) 
 }
 
 // getValueType returns the value and type of a token (argument).
-func (i *Interpreter) getValueType(token string, reader io.Reader) (value string, valueType parameterType, err error) {
+func (d *decoderManager) getValueType(token string, reader io.Reader) (value string, valueType parameterType, err error) {
 	if len(token) > 2 && strings.HasPrefix(token, "\"") && strings.HasSuffix(token, "\"") {
 		croppedToken := token[1 : len(token)-1]
 		return croppedToken, STRING, nil
@@ -79,8 +83,8 @@ func (i *Interpreter) getValueType(token string, reader io.Reader) (value string
 }
 
 // isSymbol checks if the token is a symbol (variable) rather than a literal value.
-func (i *Interpreter) isSymbol(token string) bool {
-	if token == "input"{
+func (d *decoderManager) isSymbol(token string) bool {
+	if token == "input" {
 		return false
 	}
 	if len(token) > 2 && strings.HasPrefix(token, "\"") && strings.HasSuffix(token, "\"") {
@@ -93,7 +97,7 @@ func (i *Interpreter) isSymbol(token string) bool {
 }
 
 // allocateIfNotDefined allocates a new address for a symbol if it is not already defined.
-func (i *Interpreter) allocateIfNotDefined(symbol string, symTable symbolTable) {
+func (d *decoderManager) allocateIfNotDefined(symbol string, symTable symbolTable) {
 	_, isPresent := symTable[symbol]
 	if !isPresent {
 		// Set new address
