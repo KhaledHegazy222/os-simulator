@@ -2,12 +2,11 @@ package interpreter
 
 import (
 	"errors"
-	"fmt"
-	"io"
 	"strconv"
 	"strings"
 
 	"github.com/KhaledHegazy222/os-simulator/pkg/memory"
+	"github.com/KhaledHegazy222/os-simulator/pkg/systemcalls"
 )
 
 // symbolTable is a map representing the symbol table for variables.
@@ -18,6 +17,7 @@ type processId int
 
 type decoderManager struct {
 	processToSymbolTable map[processId]symbolTable
+	os                   *systemcalls.OS
 }
 
 var (
@@ -64,13 +64,12 @@ func (d *decoderManager) decodeArgs(instruction *Instruction, process *memory.PC
 	return nil
 }
 
-func (d *decoderManager) getValueType(token string, reader io.Reader) (value string, valueType parameterType, err error) {
+func (d *decoderManager) getValueType(token string) (value string, valueType parameterType, err error) {
 	if len(token) > 2 && strings.HasPrefix(token, "\"") && strings.HasSuffix(token, "\"") {
-		croppedToken := token[1 : len(token)-1]
+		croppedToken := token[1 : len(token)-1] 
 		return croppedToken, STRING, nil
 	} else if token == "input" {
-		var data string
-		fmt.Fscanf(reader, "%s", &data)
+		data:=d.os.GetInput()
 		return data, STRING, nil
 	} else if _, conversionErr := strconv.Atoi(token); conversionErr == nil {
 		return token, INTEGER, nil

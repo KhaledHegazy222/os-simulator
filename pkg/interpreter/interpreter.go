@@ -4,9 +4,9 @@ package interpreter
 
 import (
 	"errors"
-	"os"
 
 	"github.com/KhaledHegazy222/os-simulator/pkg/memory"
+	"github.com/KhaledHegazy222/os-simulator/pkg/systemcalls"
 )
 
 // Interpreter represents the interpreter for processing instructions.
@@ -39,7 +39,8 @@ var (
 // NewInterpreter creates a new Interpreter instance with the provided memory manager.
 func NewInterpreter(memoryManager *memory.MemoryManager) Interpreter {
 	processToSymbolTable := map[processId]symbolTable{}
-	decoder := &decoderManager{processToSymbolTable: processToSymbolTable}
+	os := systemcalls.NewOS()
+	decoder := &decoderManager{processToSymbolTable: processToSymbolTable, os: os}
 	parser := &parserManager{}
 	return Interpreter{
 		memory:               memoryManager,
@@ -104,7 +105,7 @@ func (i *Interpreter) matchCommand(instruction Instruction) (allowedCommand, err
 
 func (i *Interpreter) matchTypes(instruction *Instruction, command allowedCommand) error {
 	for index, arg := range instruction.Args {
-		value, valueType, err := i.decoder.getValueType(arg, os.Stdin)
+		value, valueType, err := i.decoder.getValueType(arg)
 		if err != nil {
 			return err
 		}
